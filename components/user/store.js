@@ -119,7 +119,15 @@ export async function registerUserPublic(request) {
     adminUSer.companys = adminUSer.companys.concat({ company: myCompany._id, selected: false });
     await myUser.save();
     await adminUSer.save();
-    const response = { _id: myUser._id, name, clave: password, docId, password, email, date: myUser.date, token, company: companyName };
+    const response = {
+      _id: myUser._id,
+      name,
+      docId,
+      email,
+      date: myUser.date,
+      token,
+      company: companyName,
+    };
     return { status: 201, message: response };
   } catch (e) {
     return {
@@ -178,9 +186,27 @@ export async function loginUser(mail, pass) {
   try {
     const user = await User.findByCredentials(mail, pass);
     const { _id, name, lastname, photo, email, date, companys } = user;
-    const selectedCompany = companys.find(company => company.selected === true);
+    const selectedCompany = companys.find(
+      (company) => company.selected === true
+    );
+    if (!selectedCompany?.company) {
+      return {
+        status: 400,
+        message:
+          "No hay empresa seleccionada. Asocia o selecciona una empresa en tu cuenta.",
+      };
+    }
     const token = await user.generateAuthToken();
-    const response = { _id, name, lastname, photo, email, date, token, company: selectedCompany.company };
+    const response = {
+      _id,
+      name,
+      lastname,
+      photo,
+      email,
+      date,
+      token,
+      company: selectedCompany.company,
+    };
     return { status: 200, message: response };
   } catch (error) {
     console.log("ERROR STORE LOGIN", error);

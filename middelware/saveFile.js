@@ -17,5 +17,13 @@ const storage = new CloudinaryStorage({
   }
 });
 
-const upload = multer({ storage });
+const maxFileBytes = 5 * 1024 * 1024;
+
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: maxFileBytes,
+    files: 1,
+  },
+});
 export default upload;

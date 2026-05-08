@@ -5,17 +5,12 @@ import config from "../config.js";
 export default function auth(typeUserReq = 0) {
   return async (req, res, next) => {
     try {
-      const token = req.header("Authorization").replace("Bearer ", "");
-      const data = jwt.verify(token, config.JWT_KEY);
-      if (data.date) {
-        const dateLimit = sumDays(new Date(data.date), 5);
-        const dateNow = new Date();
-        if (+dateNow <= +dateLimit) {
-          //throw new Error('Expired token');
-        }
-      } else {
-        //throw new Error('Undated Token');
+      const rawAuth = req.header("Authorization") || "";
+      const token = rawAuth.replace(/^Bearer\s+/i, "").trim();
+      if (!token) {
+        throw new Error("Authorization header missing");
       }
+      const data = jwt.verify(token, config.JWT_KEY);
       const user = await User.findOne({
         _id: data._id,
         "tokens.token": token,
@@ -25,7 +20,11 @@ export default function auth(typeUserReq = 0) {
         throw new Error();
       }
       const { _id, name, lastname, email, areacode, phone, companys } = user;
-      const company = companys.filter((item) => item.selected);
+      const selectedCompanies = companys.filter((item) => item.selected);
+      const selectedCompanyId = selectedCompanies[0]?.company;
+      if (!selectedCompanyId) {
+        throw new Error("No company selected");
+      }
       req.user = {
         _id,
         name,
@@ -33,7 +32,7 @@ export default function auth(typeUserReq = 0) {
         email,
         areacode,
         phone,
-        company: company[0].company,
+        company: selectedCompanyId,
       };
       req.token = token;
       next();
@@ -47,12 +46,6 @@ export default function auth(typeUserReq = 0) {
     }
   };
 }
-
-const sumDays = (date, days) => {
-  const newDate = date.getDate() + days;
-  date.setDate(newDate);
-  return date;
-};
 
 const validatePermissions = (permissions, req) => {
   const method = req.method;

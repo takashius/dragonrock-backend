@@ -1,9 +1,10 @@
 import {
   getNews as _getNews,
+  getNewsDetail as _getNewsDetail,
   getPaginateNews as _getPaginateNews,
   addNews as _addNews,
   updateNews as _updateNews,
-  deleteNews as _deleteNews 
+  deleteNews as _deleteNews,
 } from "./store.js";
 
 export async function getNews(id, company) {
@@ -12,6 +13,19 @@ export async function getNews(id, company) {
     return result;
   } catch (e) {
     console.log("[ERROR] -> getNews", e);
+    return {
+      status: 500,
+      message: "Unexpected error",
+      detail: e,
+    };
+  }
+}
+
+export async function getNewsDetail(id, company) {
+  try {
+    return await _getNewsDetail(id, company);
+  } catch (e) {
+    console.log("[ERROR] -> getNewsDetail", e);
     return {
       status: 500,
       message: "Unexpected error",

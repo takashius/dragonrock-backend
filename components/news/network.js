@@ -1,10 +1,11 @@
 import express from "express";
 import {
   getNews,
+  getNewsDetail,
   getPaginateNews,
   addNews,
   updateNews,
-  deleteNews
+  deleteNews,
 } from "./controller.js";
 import auth from "../../middelware/auth.js";
 import controllerError from "../../middelware/controllerError.js";
@@ -42,6 +43,30 @@ router.get("/paginate", auth(), function (req, res) {
     })
     .catch((e) => {
       console.log("[ERROR] -> addNews", e);
+      res.status(500).send("Unexpected Error");
+    });
+});
+
+router.get("/:id", auth(), function (req, res) {
+  getNewsDetail(req.params.id, req.user.company)
+    .then((news) => {
+      switch (news.status) {
+        case 200:
+          res.status(200).send(news.message);
+          break;
+        case 404:
+          res.status(404).send(news.message);
+          break;
+        case 400:
+          res.status(400).send(news.message);
+          break;
+        default:
+          controllerError(news.detail, req, res);
+          break;
+      }
+    })
+    .catch((e) => {
+      console.log("[ERROR] -> getNewsDetail", e);
       res.status(500).send("Unexpected Error");
     });
 });

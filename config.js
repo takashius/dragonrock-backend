@@ -1,7 +1,4 @@
 import dotenv from "dotenv";
-const key = "AimeGabrielaSophia";
-
-//Gw6fpPUVFp3tJ@e
 
 if (process.env.NODE_ENV !== "production") {
   dotenv.config();
@@ -12,7 +9,9 @@ const config = {
   monDebug: process.env.MONGO_DEBUG || false,
   port: process.env.PORT || 3031,
   host: process.env.HOST || "http://localhost",
-  JWT_KEY: process.env.JWT_KEY || key,
+  JWT_KEY: process.env.JWT_KEY,
+  /** Duración estándar de JWT (`jsonwebtoken` `expiresIn`, ej: "365d", "90d") */
+  jwtExpiresIn: process.env.JWT_EXPIRES_IN || "365d",
   publicRoute: process.env.PUBLIC_ROUTE || "/public",
   staticRoute: process.env.PUBLIC_ROUTE || "/static",
   filesRoute: process.env.FILES_ROUTE || "/files",

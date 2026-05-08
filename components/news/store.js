@@ -1,5 +1,10 @@
 import News from "./model.js";
 
+/** Caracteres especiales de regex escapados para búsqueda literal segura */
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 export async function getNews(id, company) {
   try {
     let query = { active: true, company: company  };
@@ -22,46 +27,84 @@ export async function getNews(id, company) {
   }
 }
 
+export async function getNewsDetail(id, company) {
+  try {
+    if (!id?.trim()) {
+      return { status: 400, message: "News id is required" };
+    }
+    const result = await News.findOne({
+      _id: id,
+      active: true,
+      company,
+    }).populate({
+      path: "created.user",
+      select: ["name", "lastname"],
+      model: "User",
+    });
+    if (!result) {
+      return { status: 404, message: "News not found" };
+    }
+    return { status: 200, message: result };
+  } catch (e) {
+    if (e.name === "CastError") {
+      return { status: 400, message: "Invalid news id" };
+    }
+    console.log("[ERROR] -> getNewsDetail", e);
+    return {
+      status: 400,
+      message: "Results error",
+      detail: e,
+    };
+  }
+}
+
 export async function getPaginateNews(filter, page, company) {
   try {
     const limit = 20;
-    let query = { active: true, company: company };
-    let queryOr = null;
-    let totalNews = 0;
-    let result = null;
-    queryOr = [
-      { title: { "$regex": filter, "$options": "i" } }
-    ];
-    const select = "id title description content type status image tags created";
-    result = await News.find(query)
+    const searchText =
+      filter === undefined || filter === null
+        ? ""
+        : String(filter).trim();
+
+    const query = { active: true, company };
+    if (searchText) {
+      query.title = {
+        $regex: escapeRegex(searchText),
+        $options: "i",
+      };
+    }
+
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+
+    const select =
+      "id title description content type status image tags created";
+    const result = await News.find(query)
       .select(select)
-      .or(queryOr)
       .populate({
         path: "created.user",
         select: ["name", "lastname"],
         model: "User",
       })
       .limit(limit)
-      .skip((page - 1) * limit)
-      .sort({ "created.date": 'desc' });
-    totalNews = await News.countDocuments(query);
+      .skip((pageNum - 1) * limit)
+      .sort({ "created.date": "desc" });
+    const totalNews = await News.countDocuments(query);
     const totalPages = Math.ceil(totalNews / limit);
     const next = () => {
-      if (totalPages > page) {
-        return parseInt(page) + 1;
-      } else {
-        return null;
+      if (totalPages > pageNum) {
+        return pageNum + 1;
       }
-    }
+      return null;
+    };
     return {
       status: 200,
       message: {
         results: result,
         totalNews,
         totalPages,
-        currentPage: page,
+        currentPage: pageNum,
         next: next(),
-      }
+      },
     };
   } catch (e) {
     console.log("[ERROR] -> getPaginateNews", e);

@@ -92,25 +92,27 @@ userSchema.methods.generateAuthToken = async function () {
     _id: user._id,
     date: new Date(),
   };
-  const token = jwt.sign(objToken, config.JWT_KEY);
+  const token = jwt.sign(objToken, config.JWT_KEY, {
+    expiresIn: config.jwtExpiresIn,
+  });
   user.tokens = user.tokens.concat({ token });
   await user.save();
   return token;
 };
 
 userSchema.statics.findByCredentials = async (email, password) => {
-  // Search for a user by email and password.
+  const credentialError = "Invalid login credentials";
   if (!validator.isEmail(email)) {
-    throw new Error({ error: "Invalid login credentials" });
+    throw new Error(credentialError);
   }
   const user = await User.findOne({ email, active: true }).select("-__v");
 
   if (!user) {
-    throw new Error({ error: "Invalid login credentials" });
+    throw new Error(credentialError);
   }
   const isPasswordMatch = await bcrypt.compare(password, user.password);
   if (!isPasswordMatch) {
-    throw new Error({ error: "Invalid login credentials" });
+    throw new Error(credentialError);
   }
   return user;
 };

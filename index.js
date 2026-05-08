@@ -6,39 +6,57 @@ import router from "./network/routes.js";
 import cors from "cors";
 import definition from "./swagger.js";
 import swaggerUi from "swagger-ui-express";
-import path from "path";
-import { fileURLToPath } from "url";
+async function start() {
+  if (!config.JWT_KEY?.trim()) {
+    console.error(
+      "[fatal] JWT_KEY es obligatorio. Definelo en .env o variables de entorno."
+    );
+    process.exit(1);
+  }
+  if (!config.dbUrl?.trim()) {
+    console.error("[fatal] BD_URL es obligatorio.");
+    process.exit(1);
+  }
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+  try {
+    await db(config.dbUrl);
+  } catch (err) {
+    console.error("[db] Error de conexión:", err.message || err);
+    process.exit(1);
+  }
 
-db(config.dbUrl);
+  const server = express();
+  server.use(bodyParser.json());
+  // TODO(producción): restringir CORS (origin explícitos, métodos permitidos).
+  server.use(cors());
 
-const server = express();
-server.use(bodyParser.json());
-server.use(cors());
+  router(server);
 
-router(server);
+  server.use(
+    "/api-docs",
+    swaggerUi.serve,
+    swaggerUi.setup(definition, {
+      swaggerOptions: { defaultModelsExpandDepth: -1 },
+    })
+  );
 
-server.use(
-  "/api-docs",
-  swaggerUi.serve,
-  swaggerUi.setup(definition, {
-    swaggerOptions: { defaultModelsExpandDepth: -1 },
-  })
-);
+  server.get("/active-response", (req, res) => {
+    const active = true;
+    res.json({ active });
+  });
 
-server.get('/active-response', (req, res) => {
-  const active = true;
-  res.json({ active });
-});
+  server.use(_static(config.publicRoute));
+  server.use(_static("./static"));
 
-server.use(_static(config.publicRoute));
-server.use(_static("./static"));
+  server.listen(config.port, (err) => {
+    if (err) throw err;
+    console.log(`Listening on http://localhost:${config.port}`);
+  });
+}
 
-server.listen(config.port, (err) => {
-  if (err) throw err;
-  console.log(`Listening on http://localhost:${config.port}`);
+start().catch((e) => {
+  console.error("[fatal]", e);
+  process.exit(1);
 });
 
 // export const handler = serverless(server);

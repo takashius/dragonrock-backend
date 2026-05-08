@@ -1,11 +1,11 @@
 import mongoose from "mongoose";
 import validator from "validator";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import jwt, { type SignOptions } from "jsonwebtoken";
 import config from "../../config.js";
-const Schema = mongoose.Schema;
+const { Schema } = mongoose;
 
-const userSchema = Schema({
+const userSchema = new Schema({
   name: {
     type: String,
     required: [true, "Please enter your first name."],
@@ -76,41 +76,49 @@ const userSchema = Schema({
   },
 });
 
-userSchema.pre("save", async function (next) {
-  // Hash the password before saving the user model
-  const user = this;
+userSchema.pre("save", async function (this: mongoose.Document) {
+  const user = this as mongoose.Document & { password: string; isModified: (p: string) => boolean };
   if (user.isModified("password")) {
     user.password = await bcrypt.hash(user.password, 8);
   }
-  next();
 });
 
-userSchema.methods.generateAuthToken = async function () {
-  // Generate an auth token for the user
-  const user = this;
+userSchema.methods.generateAuthToken = async function (this: mongoose.Document) {
+  const user = this as mongoose.Document & {
+    _id: mongoose.Types.ObjectId;
+    tokens: { token: string; date: Date }[];
+    save: () => Promise<unknown>;
+  };
   const objToken = {
     _id: user._id,
     date: new Date(),
   };
-  const token = jwt.sign(objToken, config.JWT_KEY, {
-    expiresIn: config.jwtExpiresIn,
-  });
-  user.tokens = user.tokens.concat({ token });
+  const token = jwt.sign(
+    objToken,
+    config.JWT_KEY!,
+    { expiresIn: config.jwtExpiresIn } as SignOptions
+  );
+  user.tokens = user.tokens.concat({ token, date: new Date() });
   await user.save();
   return token;
 };
 
-userSchema.statics.findByCredentials = async (email, password) => {
+userSchema.statics.findByCredentials = async function (
+  this: mongoose.Model<unknown>,
+  email: string,
+  password: string
+) {
   const credentialError = "Invalid login credentials";
   if (!validator.isEmail(email)) {
     throw new Error(credentialError);
   }
-  const user = await User.findOne({ email, active: true }).select("-__v");
+  const user = await this.findOne({ email, active: true }).select("-__v");
 
   if (!user) {
     throw new Error(credentialError);
   }
-  const isPasswordMatch = await bcrypt.compare(password, user.password);
+  const doc = user as mongoose.Document & { password: string };
+  const isPasswordMatch = await bcrypt.compare(password, doc.password);
   if (!isPasswordMatch) {
     throw new Error(credentialError);
   }

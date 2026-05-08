@@ -6,11 +6,14 @@ import {
   updateNews as _updateNews,
   deleteNews as _deleteNews,
 } from "./store.js";
+import type { Types } from "mongoose";
 
-export async function getNews(id, company) {
+export async function getNews(
+  id: string | null,
+  company: Types.ObjectId | string
+) {
   try {
-    const result = await _getNews(id, company);
-    return result;
+    return await _getNews(id, company);
   } catch (e) {
     console.log("[ERROR] -> getNews", e);
     return {
@@ -21,7 +24,10 @@ export async function getNews(id, company) {
   }
 }
 
-export async function getNewsDetail(id, company) {
+export async function getNewsDetail(
+  id: string,
+  company: Types.ObjectId | string
+) {
   try {
     return await _getNewsDetail(id, company);
   } catch (e) {
@@ -34,10 +40,13 @@ export async function getNewsDetail(id, company) {
   }
 }
 
-export async function getPaginateNews(filter, page, company) {
+export async function getPaginateNews(
+  filter: unknown,
+  page: unknown,
+  company: Types.ObjectId | string
+) {
   try {
-    const result = await _getPaginateNews(filter, page, company);
-    return result;
+    return await _getPaginateNews(filter, page, company);
   } catch (e) {
     console.log("[ERROR] -> getPaginateNews", e);
     return {
@@ -48,10 +57,13 @@ export async function getPaginateNews(filter, page, company) {
   }
 }
 
-export async function addNews(data, user, company) {
+export async function addNews(
+  data: Record<string, unknown>,
+  user: Types.ObjectId | string,
+  company: Types.ObjectId | string
+) {
   try {
-    const result = await _addNews(data, user, company);
-    return result;
+    return await _addNews(data, user, company);
   } catch (e) {
     console.log("[ERROR] -> addNews", e);
     return {
@@ -62,10 +74,12 @@ export async function addNews(data, user, company) {
   }
 }
 
-export async function updateNews(data, company) {
+export async function updateNews(
+  data: { id: string } & Record<string, unknown>,
+  company: Types.ObjectId | string
+) {
   try {
-    const result = await _updateNews(data, company);
-    return result;
+    return await _updateNews(data, company);
   } catch (e) {
     console.log("[ERROR] -> updateNews", e);
     return {
@@ -76,10 +90,12 @@ export async function updateNews(data, company) {
   }
 }
 
-export async function deleteNews(id, company) {
+export async function deleteNews(
+  id: string,
+  company: Types.ObjectId | string
+) {
   try {
-    const result = await _deleteNews(id, company);
-    return result;
+    return await _deleteNews(id, company);
   } catch (e) {
     console.log("[ERROR] -> deleteNews", e);
     return {

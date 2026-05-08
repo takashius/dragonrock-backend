@@ -1,12 +1,14 @@
-import express, { static as _static } from "express";
+import express, { static as expressStatic } from "express";
 import bodyParser from "body-parser";
+import path from "path";
 import db from "./db.js";
 import config from "./config.js";
 import router from "./network/routes.js";
 import cors from "cors";
 import definition from "./swagger.js";
 import swaggerUi from "swagger-ui-express";
-async function start() {
+
+async function start(): Promise<void> {
   if (!config.JWT_KEY?.trim()) {
     console.error(
       "[fatal] JWT_KEY es obligatorio. Definelo en .env o variables de entorno."
@@ -21,7 +23,8 @@ async function start() {
   try {
     await db(config.dbUrl);
   } catch (err) {
-    console.error("[db] Error de conexión:", err.message || err);
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[db] Error de conexión:", msg);
     process.exit(1);
   }
 
@@ -40,23 +43,21 @@ async function start() {
     })
   );
 
-  server.get("/active-response", (req, res) => {
-    const active = true;
-    res.json({ active });
+  server.get("/active-response", (_req, res) => {
+    res.json({ active: true });
   });
 
-  server.use(_static(config.publicRoute));
-  server.use(_static("./static"));
+  server.use(expressStatic(config.publicRoute));
+  server.use(expressStatic(path.join(process.cwd(), "static")));
 
-  server.listen(config.port, (err) => {
+  const port = Number(config.port) || 3031;
+  server.listen(port, (err?: Error) => {
     if (err) throw err;
-    console.log(`Listening on http://localhost:${config.port}`);
+    console.log(`Listening on http://localhost:${port}`);
   });
 }
 
-start().catch((e) => {
+start().catch((e: unknown) => {
   console.error("[fatal]", e);
   process.exit(1);
 });
-
-// export const handler = serverless(server);

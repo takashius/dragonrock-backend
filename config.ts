@@ -4,13 +4,34 @@ if (process.env.NODE_ENV !== "production") {
   dotenv.config();
 }
 
-const config = {
+export interface AppConfig {
+  dbUrl: string | undefined;
+  monDebug: boolean | string;
+  port: number | string;
+  host: string;
+  JWT_KEY: string | undefined;
+  jwtExpiresIn: string;
+  publicRoute: string;
+  staticRoute: string;
+  filesRoute: string;
+  dev: boolean;
+  companyDefault: string | undefined;
+  userAdmin: string | undefined;
+  mailer: {
+    host: string | undefined;
+    port: string | number | undefined;
+    user: string | undefined;
+    pass: string | undefined;
+    secure: boolean | string;
+  };
+}
+
+const config: AppConfig = {
   dbUrl: process.env.BD_URL,
   monDebug: process.env.MONGO_DEBUG || false,
   port: process.env.PORT || 3031,
   host: process.env.HOST || "http://localhost",
   JWT_KEY: process.env.JWT_KEY,
-  /** Duración estándar de JWT (`jsonwebtoken` `expiresIn`, ej: "365d", "90d") */
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "365d",
   publicRoute: process.env.PUBLIC_ROUTE || "/public",
   staticRoute: process.env.PUBLIC_ROUTE || "/static",

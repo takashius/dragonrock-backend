@@ -18,12 +18,13 @@ import {
 import config from "../../config.js";
 import { mailer } from "../../middelware/mailer.js";
 import { getCompany } from "../company/store.js";
-import * as validator from 'email-validator';
+import * as validator from "email-validator";
+import type { Types } from "mongoose";
+import type { AuthUserPayload } from "../../types/auth.js";
 
-export async function getUsers(filterUsers) {
+export async function getUsers(filterUsers: Types.ObjectId | string | null) {
   try {
-    const result = await _getUsers(filterUsers);
-    return result;
+    return await _getUsers(filterUsers);
   } catch (e) {
     console.log(e);
     return {
@@ -34,7 +35,7 @@ export async function getUsers(filterUsers) {
   }
 }
 
-export async function getUser(id) {
+export async function getUser(id: Types.ObjectId | string | null) {
   try {
     if (!id) {
       return {
@@ -42,8 +43,7 @@ export async function getUser(id) {
         message: "User ID is required",
       };
     }
-    const result = await _getUser(id);
-    return result;
+    return await _getUser(id);
   } catch (e) {
     console.log(e);
     return {
@@ -54,10 +54,9 @@ export async function getUser(id) {
   }
 }
 
-export async function addUser(user) {
+export async function addUser(user: Record<string, unknown>) {
   try {
-    const fullUser = await _addUser(user);
-    return fullUser;
+    return await _addUser(user);
   } catch (e) {
     console.log(e);
     return {
@@ -68,7 +67,14 @@ export async function addUser(user) {
   }
 }
 
-export async function updateUser(user) {
+export async function updateUser(user: {
+  id: string;
+  name?: string;
+  lastname?: string;
+  photo?: string;
+  phone?: string;
+  password?: string;
+}) {
   try {
     console.log(user);
     if (!user.id) {
@@ -77,8 +83,7 @@ export async function updateUser(user) {
         message: "No user ID recived",
       };
     }
-    const result = await update(user);
-    return result;
+    return await update(user);
   } catch (e) {
     console.log(e);
     return {
@@ -89,10 +94,9 @@ export async function updateUser(user) {
   }
 }
 
-export async function deleteUser(id) {
+export async function deleteUser(id: string) {
   try {
-    const result = await _deleteUser(id);
-    return result;
+    return await _deleteUser(id);
   } catch (e) {
     console.log(e);
     return {
@@ -103,11 +107,10 @@ export async function deleteUser(id) {
   }
 }
 
-export async function loginUser(user) {
+export async function loginUser(user: { email: string; password: string }) {
   try {
     const { email, password } = user;
-    const result = await login(email, password);
-    return result;
+    return await login(email, password);
   } catch (e) {
     console.log(e);
     return {
@@ -118,10 +121,12 @@ export async function loginUser(user) {
   }
 }
 
-export async function logoutUser(id, token) {
+export async function logoutUser(
+  id: Types.ObjectId | string,
+  token: string
+) {
   try {
-    const result = await logout(id, token);
-    return result;
+    return await logout(id, token);
   } catch (e) {
     console.log(e);
     return {
@@ -132,10 +137,9 @@ export async function logoutUser(id, token) {
   }
 }
 
-export async function logoutAll(id) {
+export async function logoutAll(id: Types.ObjectId | string) {
   try {
-    const result = await _logoutAll(id);
-    return result;
+    return await _logoutAll(id);
   } catch (e) {
     console.log(e);
     return {
@@ -146,7 +150,10 @@ export async function logoutAll(id) {
   }
 }
 
-export async function changePassword(user, newPass) {
+export async function changePassword(
+  user: AuthUserPayload,
+  newPass: string
+) {
   try {
     if (!user || !newPass) {
       return {
@@ -164,10 +171,12 @@ export async function changePassword(user, newPass) {
   }
 }
 
-export async function addCompany(user, company) {
+export async function addCompany(
+  user: Types.ObjectId | string,
+  company: Types.ObjectId | string
+) {
   try {
-    const fullUser = await _addCompany(user, company);
-    return fullUser;
+    return await _addCompany(user, company);
   } catch (e) {
     console.log(e);
     return {
@@ -178,10 +187,12 @@ export async function addCompany(user, company) {
   }
 }
 
-export async function removeCompany(user, company) {
+export async function removeCompany(
+  user: AuthUserPayload,
+  company: Types.ObjectId | string
+) {
   try {
-    const fullUser = await _removeCompany(user, company);
-    return fullUser;
+    return await _removeCompany(user._id, company);
   } catch (e) {
     console.log(e);
     return {
@@ -192,10 +203,12 @@ export async function removeCompany(user, company) {
   }
 }
 
-export async function selectCompany(user, company) {
+export async function selectCompany(
+  user: AuthUserPayload,
+  company: Types.ObjectId | string
+) {
   try {
-    const fullUser = await _selectCompany(user, company);
-    return fullUser;
+    return await _selectCompany(user._id, company);
   } catch (e) {
     console.log(e);
     return {
@@ -206,11 +219,11 @@ export async function selectCompany(user, company) {
   }
 }
 
-export async function recoveryStepOne(mail) {
+export async function recoveryStepOne(mail: string) {
   try {
     const min = 100000;
     const max = 999999;
-    const code = Math.floor(Math.random() * (max - min + 1) + min);
+    const code = String(Math.floor(Math.random() * (max - min + 1) + min));
     const foundUser = await _recoveryStepOne(mail, code);
     if (!foundUser.status) {
       return {
@@ -220,6 +233,9 @@ export async function recoveryStepOne(mail) {
     }
     const configCrud = await getCompany(config.companyDefault);
     const configCompany = configCrud.message;
+    if (!configCompany) {
+      return { status: 500, message: "Configuración de empresa por defecto no encontrada" };
+    }
     const message = `
     <p>Ha solicitado restaurar su clave de acceso, copia el siguiente código en la pantalla de la aplicación para reestablecer su contraseña.</br>
     Si usted no solicitó este correo solo debe ignorarlo.</p>
@@ -230,10 +246,10 @@ export async function recoveryStepOne(mail) {
       </center>
     </p>
     `;
-    mailer(
+    await mailer(
       configCompany,
       mail,
-      `${foundUser.user.name} ${foundUser.user.lastname}`,
+      `${foundUser.user.name} ${foundUser.user.lastname ?? ""}`,
       "Recuperar contraseña",
       "Recuperación de clave",
       message
@@ -252,7 +268,11 @@ export async function recoveryStepOne(mail) {
   }
 }
 
-export async function recoveryStepTwo(data) {
+export async function recoveryStepTwo(data: {
+  email: string;
+  code: string;
+  newPass: string;
+}) {
   try {
     const foundUser = await _recoveryStepTwo(
       data.email,
@@ -267,13 +287,16 @@ export async function recoveryStepTwo(data) {
     }
     const configCrud = await getCompany(config.companyDefault);
     const configCompany = configCrud.message;
+    if (!configCompany) {
+      return { status: 500, message: "Configuración de empresa por defecto no encontrada" };
+    }
     const message = `
     <p>Se ha cambiado su contraseña exitosamente.</p>
     `;
-    mailer(
+    await mailer(
       configCompany,
       data.email,
-      `${foundUser.user.name} ${foundUser.user.lastname}`,
+      `${foundUser.user.name} ${foundUser.user.lastname ?? ""}`,
       "Cambio de clave exitoso",
       "Cambio de clave",
       message
@@ -292,20 +315,37 @@ export async function recoveryStepTwo(data) {
   }
 }
 
-export async function registerUserPublic(data) {
+export async function registerUserPublic(data: {
+  name: string;
+  email: string;
+  password: string;
+  companyName: string;
+  docId: string;
+}) {
   try {
     if (!data.email) {
-      return { status: 400, message: { email: 'Email is required' } }
+      return { status: 400, message: { email: "Email is required" } };
     }
     const isValid = validator.validate(data.email);
 
     if (!isValid) {
-      return { status: 400, message: { email: "Email is not valid" } }
+      return { status: 400, message: { email: "Email is not valid" } };
     }
     const user = await _registerUserPublic(data);
-    const userData = user.message;
+    if (user.status !== 201 || !("message" in user) || !user.message) {
+      return user;
+    }
+    const userData = user.message as {
+      name: string;
+      company: string;
+      docId: string;
+      email: string;
+    };
     const configCrud = await getCompany(config.companyDefault);
     const configCompany = configCrud.message;
+    if (!configCompany) {
+      return { status: 500, message: "Configuración de empresa por defecto no encontrada" };
+    }
     const message = `
     <p>Se ha registrado de forma exitosa en el sistema, a continuación sus datos registrados en nuestra App.</p>
     <p>
@@ -317,7 +357,7 @@ export async function registerUserPublic(data) {
       </ul>
     </p>
     `;
-    mailer(
+    await mailer(
       configCompany,
       userData.email,
       `${userData.name}`,
@@ -327,7 +367,7 @@ export async function registerUserPublic(data) {
     );
     return user;
   } catch (e) {
-    console.log('Controller -> registerUserPublic', e);
+    console.log("Controller -> registerUserPublic", e);
     return {
       status: 500,
       message: "Unexpected controller error",

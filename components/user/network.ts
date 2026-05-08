@@ -20,7 +20,7 @@ import auth from "../../middelware/auth.js";
 import controllerError from "../../middelware/controllerError.js";
 const router = express.Router();
 
-router.get("/", auth(), function (req, res) {
+router.get("/", auth(), function (_req, res) {
   getUsers(null)
     .then((userList) => {
       switch (userList.status) {
@@ -39,7 +39,7 @@ router.get("/", auth(), function (req, res) {
 });
 
 router.get("/account", auth(), function (req, res) {
-  getUser(req.user._id)
+  getUser(req.user!._id)
     .then((userList) => {
       switch (userList.status) {
         case 200:
@@ -100,7 +100,11 @@ router.post("/", auth(), function (req, res) {
           res.status(201).send(user.message);
           break;
         default:
-          controllerError(user.detail, req, res);
+          if ("detail" in user && user.detail) {
+            controllerError(user.detail, req, res);
+          } else {
+            res.status(user.status).send(user.message);
+          }
           break;
       }
     })
@@ -121,7 +125,11 @@ router.post("/register", function (req, res) {
           res.status(user.status).send(user.message);
           break;
         default:
-          controllerError(user.detail, req, res);
+          if ("detail" in user && user.detail) {
+            controllerError(user.detail, req, res);
+          } else {
+            res.status(user.status).send(user.message);
+          }
           break;
       }
     })
@@ -139,7 +147,11 @@ router.post("/recovery", function (req, res) {
           res.status(200).send(user.message);
           break;
         default:
-          controllerError(user.detail, req, res);
+          if ("detail" in user && user.detail) {
+            controllerError(user.detail, req, res);
+          } else {
+            res.status(user.status).send(user.message);
+          }
           break;
       }
     })
@@ -150,7 +162,7 @@ router.post("/recovery", function (req, res) {
 });
 
 router.delete("/del_company", auth(), function (req, res) {
-  removeCompany(req.user, req.body.company)
+  removeCompany(req.user!, req.body.company)
     .then((resp) => {
       switch (resp.status) {
         case 200:
@@ -196,7 +208,11 @@ router.patch("/", auth(), function (req, res) {
           res.status(user.status).send(user.message);
           break;
         default:
-          controllerError(user.detail, req, res);
+          if ("detail" in user && user.detail) {
+            controllerError(user.detail, req, res);
+          } else {
+            res.status(user.status).send(user.message);
+          }
       }
     })
     .catch((e) => {
@@ -206,7 +222,7 @@ router.patch("/", auth(), function (req, res) {
 });
 
 router.patch("/select_company", auth(), function (req, res) {
-  selectCompany(req.user, req.body.company)
+  selectCompany(req.user!, req.body.company)
     .then((user) => {
       switch (user.status) {
         case 200:
@@ -216,7 +232,11 @@ router.patch("/select_company", auth(), function (req, res) {
           res.status(user.status).send(user.message);
           break;
         default:
-          controllerError(user.detail, req, res);
+          if ("detail" in user && user.detail) {
+            controllerError(user.detail, req, res);
+          } else {
+            res.status(user.status).send(user.message);
+          }
       }
     })
     .catch((e) => {
@@ -244,27 +264,27 @@ router.post("/login", async (req, res) => {
 });
 
 router.post("/logout", auth(), async (req, res) => {
-  logoutUser(req.user._id, req.token)
-    .then((user) => {
+  logoutUser(req.user!._id, req.token!)
+    .then(() => {
       res.status(200).send("Logout successful");
     })
-    .catch((e) => {
+    .catch(() => {
       res.status(400).send("Invalid user data");
     });
 });
 
 router.post("/logoutall", auth(), async (req, res) => {
-  logoutAll(req.user._id)
-    .then((user) => {
+  logoutAll(req.user!._id)
+    .then(() => {
       res.status(200).send("Logout successful");
     })
-    .catch((e) => {
+    .catch(() => {
       res.status(400).send("Invalid user data");
     });
 });
 
 router.post("/change_password", auth(), function (req, res) {
-  changePassword(req.user, req.body.password)
+  changePassword(req.user!, req.body.password as string)
     .then((resp) => {
       switch (resp.status) {
         case 200:
@@ -274,7 +294,11 @@ router.post("/change_password", auth(), function (req, res) {
           res.status(resp.status).send(resp.message);
           break;
         default:
-          controllerError(resp.detail, req, res);
+          if ("detail" in resp && resp.detail) {
+            controllerError(resp.detail, req, res);
+          } else {
+            res.status(resp.status).send(resp.message);
+          }
           break;
       }
     })
@@ -295,7 +319,11 @@ router.post("/add_company", auth(), function (req, res) {
           res.status(resp.status).send(resp.message);
           break;
         default:
-          controllerError(resp.detail, req, res);
+          if ("detail" in resp && resp.detail) {
+            controllerError(resp.detail, req, res);
+          } else {
+            res.status(resp.status).send(resp.message);
+          }
           break;
       }
     })

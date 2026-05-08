@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
 import validator from "validator";
-const Schema = mongoose.Schema;
+const { Schema } = mongoose;
 
-const companySchema = Schema({
+const companySchema = new Schema({
   name: {
     type: String,
     required: [true, "Please enter a company name."],

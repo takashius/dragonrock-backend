@@ -1,12 +1,9 @@
 import Company from "./model.js";
 
 /** Lectura de empresa (p. ej. plantilla de correo desde `COMPANY_DEFAULT`) */
-export async function getCompany(id) {
+export async function getCompany(id: string | undefined) {
   try {
-    let query = { active: true };
-    if (id) {
-      query = { _id: id };
-    }
+    const query: Record<string, unknown> = id ? { _id: id } : { active: true };
 
     const result = await Company.findOne(query).populate({
       path: "created.user",

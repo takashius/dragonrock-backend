@@ -1,10 +1,14 @@
+import type { Types } from "mongoose";
 import User from "./model.js";
 import Company from "../company/model.js";
 import config from "../../config.js";
 
-async function findUser(companyId = null, userId = null) {
+async function findUser(
+  companyId: Types.ObjectId | string | null = null,
+  userId: Types.ObjectId | string | null = null
+) {
   try {
-    let filter = {
+    let filter: Record<string, unknown> = {
       active: true,
     };
     if (companyId) {
@@ -32,15 +36,16 @@ async function findUser(companyId = null, userId = null) {
         .populate(populateCompany);
     }
     if (!response) {
-      return empty_user_obj;
+      return null;
     }
     return response;
   } catch (e) {
     console.log("findUser error", e);
+    return null;
   }
 }
 
-export async function getUser(userId) {
+export async function getUser(userId: Types.ObjectId | string | null) {
   try {
     const list = await findUser(null, userId);
 
@@ -49,12 +54,11 @@ export async function getUser(userId) {
         status: 200,
         message: list,
       };
-    } else {
-      return {
-        status: 400,
-        message: "User not found",
-      };
     }
+    return {
+      status: 400,
+      message: "User not found",
+    };
   } catch (e) {
     console.log("getUser Store", e);
     return {
@@ -65,7 +69,7 @@ export async function getUser(userId) {
   }
 }
 
-export async function getUsers(companyId) {
+export async function getUsers(companyId: Types.ObjectId | string | null) {
   try {
     const list = await findUser(companyId);
     return {
@@ -81,14 +85,16 @@ export async function getUsers(companyId) {
   }
 }
 
-export async function addUser(user) {
+export async function addUser(user: Record<string, unknown>) {
   try {
     const myUser = new User(user);
     await myUser.save();
     const { _id, name, lastname, photo, email, date } = myUser;
-    const token = await myUser.generateAuthToken();
-    user = { _id, name, lastname, photo, email, date, token };
-    return { status: 201, message: user };
+    const token = await (
+      myUser as typeof myUser & { generateAuthToken(): Promise<string> }
+    ).generateAuthToken();
+    const message = { _id, name, lastname, photo, email, date, token };
+    return { status: 201, message };
   } catch (e) {
     return {
       status: 500,
@@ -98,13 +104,28 @@ export async function addUser(user) {
   }
 }
 
-export async function registerUserPublic(request) {
+export async function registerUserPublic(request: {
+  name: string;
+  email: string;
+  password: string;
+  companyName: string;
+  docId: string;
+}) {
   try {
     const { name, email, password, companyName, docId } = request;
     const myUser = new User({ name, email, password });
     await myUser.save();
-    const adminUSer = await User.findOne({ _id: config.userAdmin });
-    const token = await myUser.generateAuthToken();
+    const adminUser = await User.findOne({ _id: config.userAdmin });
+    if (!adminUser) {
+      return {
+        status: 500,
+        message: "User registration error",
+        detail: new Error("USER_ADMIN no configurado o inexistente"),
+      };
+    }
+    const token = await (
+      myUser as typeof myUser & { generateAuthToken(): Promise<string> }
+    ).generateAuthToken();
     const companyData = {
       name: companyName,
       email: email,
@@ -115,10 +136,16 @@ export async function registerUserPublic(request) {
     };
     const myCompany = new Company(companyData);
     await myCompany.save();
-    myUser.companys = myUser.companys.concat({ company: myCompany._id, selected: true });
-    adminUSer.companys = adminUSer.companys.concat({ company: myCompany._id, selected: false });
+    myUser.companys = myUser.companys.concat({
+      company: myCompany._id,
+      selected: true,
+    });
+    adminUser.companys = adminUser.companys.concat({
+      company: myCompany._id,
+      selected: false,
+    });
     await myUser.save();
-    await adminUSer.save();
+    await adminUser.save();
     const response = {
       _id: myUser._id,
       name,
@@ -138,11 +165,24 @@ export async function registerUserPublic(request) {
   }
 }
 
-export async function updateUser(user) {
+export async function updateUser(user: {
+  id: string;
+  name?: string;
+  lastname?: string;
+  photo?: string;
+  phone?: string;
+  password?: string;
+}) {
   try {
     const foundUser = await User.findOne({
       _id: user.id,
     });
+    if (!foundUser) {
+      return {
+        status: 400,
+        message: "User not found",
+      };
+    }
     if (user.name) {
       foundUser.name = user.name;
     }
@@ -161,8 +201,8 @@ export async function updateUser(user) {
 
     await foundUser.save();
     const { _id, name, lastname, photo, email, date, active } = foundUser;
-    user = { _id, name, lastname, photo, email, date, active };
-    return { status: 200, message: user };
+    const message = { _id, name, lastname, photo, email, date, active };
+    return { status: 200, message };
   } catch (e) {
     return {
       status: 500,
@@ -172,22 +212,43 @@ export async function updateUser(user) {
   }
 }
 
-export async function deleteUser(id) {
+export async function deleteUser(id: string) {
   const foundUser = await User.findOne({
     _id: id,
   });
+  if (!foundUser) {
+    return { status: 400, message: "User not found" };
+  }
   foundUser.active = false;
-  foundUser.save();
+  await foundUser.save();
 
   return { status: 200, message: "User deleted" };
 }
 
-export async function loginUser(mail, pass) {
+export async function loginUser(mail: string, pass: string) {
   try {
-    const user = await User.findByCredentials(mail, pass);
+    const user = await (
+      User as unknown as {
+        findByCredentials(
+          m: string,
+          p: string
+        ): Promise<
+          import("mongoose").Document & {
+            generateAuthToken(): Promise<string>;
+            companys: { selected: boolean; company: Types.ObjectId }[];
+            _id: Types.ObjectId;
+            name: string;
+            lastname?: string;
+            photo?: string;
+            email: string;
+            date: Date;
+          }
+        >;
+      }
+    ).findByCredentials(mail, pass);
     const { _id, name, lastname, photo, email, date, companys } = user;
     const selectedCompany = companys.find(
-      (company) => company.selected === true
+      (company: { selected: boolean }) => company.selected === true
     );
     if (!selectedCompany?.company) {
       return {
@@ -214,40 +275,58 @@ export async function loginUser(mail, pass) {
   }
 }
 
-export async function logoutUser(id, tokenUser) {
+export async function logoutUser(
+  id: Types.ObjectId | string,
+  tokenUser: string
+) {
   const foundUser = await User.findOne({
     _id: id,
   });
-  foundUser.tokens = foundUser.tokens.filter((token) => {
+  if (!foundUser) {
+    return;
+  }
+  foundUser.tokens = foundUser.tokens.filter((token: { token: string }) => {
     return token.token != tokenUser;
   });
   await foundUser.save();
 }
 
-export async function logoutAll(id) {
+export async function logoutAll(id: Types.ObjectId | string) {
   const foundUser = await User.findOne({
     _id: id,
   });
+  if (!foundUser) {
+    return;
+  }
   foundUser.tokens.splice(0, foundUser.tokens.length);
   await foundUser.save();
 }
 
-export async function changePassword(user, newPass) {
+export async function changePassword(
+  user: { email: string },
+  newPass: string
+) {
   try {
     const foundUser = await User.findOne({
       email: user.email,
       active: true,
     });
+    if (!foundUser) {
+      return {
+        status: 400,
+        message: "User not found",
+      };
+    }
     foundUser.password = newPass;
-    let error = false;
-    await foundUser.save().catch(function (err) {
-      error = err;
+    let saveError: unknown;
+    await foundUser.save().catch(function (err: unknown) {
+      saveError = err;
     });
-    if (error) {
+    if (saveError) {
       return {
         status: 500,
         message: "Unexpected error",
-        detail: error,
+        detail: saveError,
       };
     }
     return {
@@ -264,18 +343,26 @@ export async function changePassword(user, newPass) {
   }
 }
 
-export async function addCompany(userId, company) {
+export async function addCompany(
+  userId: Types.ObjectId | string,
+  company: Types.ObjectId | string
+) {
   try {
     const foundUser = await User.findOne({
       _id: userId,
       active: true,
     });
+    if (!foundUser) {
+      return { status: 400, message: "User not found" };
+    }
 
     let selected = false;
     if (foundUser.companys.length === 0) {
       selected = true;
     }
-    const found = foundUser.companys.filter((item) => item.company == company);
+    const found = foundUser.companys.filter(
+      (item: { company: Types.ObjectId }) => String(item.company) == String(company)
+    );
 
     if (found?.length > 0) {
       return {
@@ -283,7 +370,10 @@ export async function addCompany(userId, company) {
         message: "The company is already associated with this user",
       };
     }
-    foundUser.companys = foundUser.companys.concat({ company, selected });
+    foundUser.companys = foundUser.companys.concat({
+      company: company as Types.ObjectId,
+      selected,
+    });
     await foundUser.save();
 
     return {
@@ -300,16 +390,24 @@ export async function addCompany(userId, company) {
   }
 }
 
-export async function removeCompany(userId, company) {
+export async function removeCompany(
+  userId: Types.ObjectId | string,
+  company: Types.ObjectId | string
+) {
   try {
     const foundUser = await User.findOne({
       _id: userId,
       active: true,
     });
+    if (!foundUser) {
+      return { status: 400, message: "User not found" };
+    }
 
-    foundUser.companys = foundUser.companys.filter((item) => {
-      return item.company != company;
-    });
+    foundUser.companys = foundUser.companys.filter(
+      (item: { company: Types.ObjectId }) => {
+        return String(item.company) != String(company);
+      }
+    );
 
     if (foundUser.companys.length === 0) {
       return {
@@ -317,10 +415,12 @@ export async function removeCompany(userId, company) {
         message: "You cannot delete the only company associated with the user",
       };
     }
-    foundUser.companys = foundUser.companys.map((item) => {
-      item.selected = false;
-      return item;
-    });
+    foundUser.companys = foundUser.companys.map(
+      (item: { company: Types.ObjectId; selected: boolean }) => {
+        item.selected = false;
+        return item;
+      }
+    );
     foundUser.companys[0].selected = true;
     await foundUser.save();
 
@@ -338,13 +438,21 @@ export async function removeCompany(userId, company) {
   }
 }
 
-export async function selectCompany(userId, company) {
+export async function selectCompany(
+  userId: Types.ObjectId | string,
+  company: Types.ObjectId | string
+) {
   try {
     const foundUser = await User.findOne({
       _id: userId,
       active: true,
     });
-    const companyInUSer = foundUser.companys.find((x) => x.company == company);
+    if (!foundUser) {
+      return { status: 400, message: "User not found" };
+    }
+    const companyInUSer = foundUser.companys.find(
+      (x: { company: Types.ObjectId }) => String(x.company) == String(company)
+    );
     if (!companyInUSer) {
       return {
         status: 400,
@@ -352,14 +460,16 @@ export async function selectCompany(userId, company) {
       };
     }
 
-    foundUser.companys = foundUser.companys.map((item) => {
-      if (item.company == company) {
-        item.selected = true;
-      } else {
-        item.selected = false;
+    foundUser.companys = foundUser.companys.map(
+      (item: { company: Types.ObjectId; selected: boolean }) => {
+        if (String(item.company) == String(company)) {
+          item.selected = true;
+        } else {
+          item.selected = false;
+        }
+        return item;
       }
-      return item;
-    });
+    );
 
     await foundUser.save();
 
@@ -377,28 +487,32 @@ export async function selectCompany(userId, company) {
   }
 }
 
-export async function recoveryStepOne(email, code) {
+export async function recoveryStepOne(email: string, code: string) {
   try {
     const foundUser = await User.findOne({ email, active: true });
     if (!foundUser) {
-      return { status: false };
+      return { status: false as const };
     }
     foundUser.recovery = foundUser.recovery.concat({ code });
     await foundUser.save();
     return {
-      status: true,
+      status: true as const,
       user: foundUser,
     };
   } catch (e) {
     console.log("ERROR -> recoveryStepOne ", e);
     return {
-      status: false,
+      status: false as const,
       text: "No existe el correo registrado en nuestra base de datos",
     };
   }
 }
 
-export async function recoveryStepTwo(email, code, newPass) {
+export async function recoveryStepTwo(
+  email: string,
+  code: string,
+  newPass: string
+) {
   try {
     const foundUser = await User.findOne({
       email,
@@ -406,19 +520,19 @@ export async function recoveryStepTwo(email, code, newPass) {
       active: true,
     });
     if (!foundUser) {
-      return { status: false };
+      return { status: false as const };
     }
     foundUser.password = newPass;
     foundUser.recovery.splice(0, foundUser.recovery.length);
-    foundUser.save();
+    await foundUser.save();
     return {
-      status: true,
+      status: true as const,
       user: foundUser,
     };
   } catch (e) {
     console.log("ERROR -> recoveryStepOne ", e);
     return {
-      status: false,
+      status: false as const,
       text: "Codigo incorrecto",
     };
   }

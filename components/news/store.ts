@@ -1,13 +1,16 @@
+import type { Types } from "mongoose";
 import News from "./model.js";
 
-/** Caracteres especiales de regex escapados para búsqueda literal segura */
-function escapeRegex(str) {
+function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-export async function getNews(id, company) {
+export async function getNews(
+  id: string | null,
+  company: Types.ObjectId | string
+) {
   try {
-    let query = { active: true, company: company  };
+    const query: Record<string, unknown> = { active: true, company };
     if (id) {
       query._id = id;
     }
@@ -27,7 +30,10 @@ export async function getNews(id, company) {
   }
 }
 
-export async function getNewsDetail(id, company) {
+export async function getNewsDetail(
+  id: string,
+  company: Types.ObjectId | string
+) {
   try {
     if (!id?.trim()) {
       return { status: 400, message: "News id is required" };
@@ -45,8 +51,8 @@ export async function getNewsDetail(id, company) {
       return { status: 404, message: "News not found" };
     }
     return { status: 200, message: result };
-  } catch (e) {
-    if (e.name === "CastError") {
+  } catch (e: unknown) {
+    if (e instanceof Error && e.name === "CastError") {
       return { status: 400, message: "Invalid news id" };
     }
     console.log("[ERROR] -> getNewsDetail", e);
@@ -58,7 +64,11 @@ export async function getNewsDetail(id, company) {
   }
 }
 
-export async function getPaginateNews(filter, page, company) {
+export async function getPaginateNews(
+  filter: unknown,
+  page: unknown,
+  company: Types.ObjectId | string
+) {
   try {
     const limit = 20;
     const searchText =
@@ -66,7 +76,7 @@ export async function getPaginateNews(filter, page, company) {
         ? ""
         : String(filter).trim();
 
-    const query = { active: true, company };
+    const query: Record<string, unknown> = { active: true, company };
     if (searchText) {
       query.title = {
         $regex: escapeRegex(searchText),
@@ -74,7 +84,7 @@ export async function getPaginateNews(filter, page, company) {
       };
     }
 
-    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const pageNum = Math.max(1, parseInt(String(page), 10) || 1);
 
     const select =
       "id title description content type status image tags created";
@@ -90,7 +100,7 @@ export async function getPaginateNews(filter, page, company) {
       .sort({ "created.date": "desc" });
     const totalNews = await News.countDocuments(query);
     const totalPages = Math.ceil(totalNews / limit);
-    const next = () => {
+    const next = (): number | null => {
       if (totalPages > pageNum) {
         return pageNum + 1;
       }
@@ -116,9 +126,13 @@ export async function getPaginateNews(filter, page, company) {
   }
 }
 
-export async function addNews(data, user, company) {
+export async function addNews(
+  data: Record<string, unknown>,
+  user: Types.ObjectId | string,
+  company: Types.ObjectId | string
+) {
   try {
-        const newsData = {
+    const newsData = {
       title: data.title,
       description: data.description,
       content: data.content,
@@ -147,9 +161,12 @@ export async function addNews(data, user, company) {
   }
 }
 
-export async function updateNews(data, company) {
+export async function updateNews(
+  data: { id: string } & Record<string, unknown>,
+  company: Types.ObjectId | string
+) {
   try {
-    const foundNews = await News.findOne({ _id: data.id, company: company });
+    const foundNews = await News.findOne({ _id: data.id, company });
     if (!foundNews) {
       return {
         status: 400,
@@ -157,25 +174,25 @@ export async function updateNews(data, company) {
       };
     }
     if (data.title) {
-      foundNews.title = data.title;
+      foundNews.title = data.title as string;
     }
     if (data.description) {
-      foundNews.description = data.description;
+      foundNews.description = data.description as string;
     }
     if (data.content) {
-      foundNews.content = data.content;
+      foundNews.content = data.content as string;
     }
     if (data.type) {
-      foundNews.type = data.type;
+      foundNews.type = data.type as "escenaRock" | "culturales" | "other";
     }
     if (data.status) {
-      foundNews.status = data.status;
+      foundNews.status = data.status as "draft" | "published" | "archived";
     }
     if (data.image) {
-      foundNews.image = data.image;
+      foundNews.image = data.image as string;
     }
     if (data.tags) {
-      foundNews.tags = data.tags;
+      foundNews.tags = data.tags as string[];
     }
     await foundNews.save();
     return {
@@ -192,9 +209,12 @@ export async function updateNews(data, company) {
   }
 }
 
-export async function deleteNews(id, company) {
+export async function deleteNews(
+  id: string,
+  company: Types.ObjectId | string
+) {
   try {
-    const foundNews = await News.findOne({ _id: id, company: company });
+    const foundNews = await News.findOne({ _id: id, company });
     if (!foundNews) {
       return {
         status: 400,
@@ -202,7 +222,7 @@ export async function deleteNews(id, company) {
       };
     }
     foundNews.active = false;
-    foundNews.save();
+    await foundNews.save();
     return {
       status: 200,
       message: "News deleted successfully",

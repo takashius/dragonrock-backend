@@ -1,6 +1,6 @@
 import type { UserRepository } from "../ports/userRepository.js";
 import type { UserOutcome } from "../types/userOutcome.js";
-import type { AuthUserPayload } from "../../types/auth.js";
+import type { AuthUserPayload } from "../types/authUserPayload.js";
 
 export class ChangePasswordUseCase {
   constructor(private readonly users: UserRepository) {}

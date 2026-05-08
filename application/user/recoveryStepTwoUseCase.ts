@@ -2,6 +2,7 @@ import type { UserRepository } from "../ports/userRepository.js";
 import type { CompanyLookup } from "../ports/companyLookup.js";
 import type { MailSender } from "../ports/mailSender.js";
 import type { UserOutcome } from "../types/userOutcome.js";
+import { resolveDefaultCompanyForTransactionalMail } from "./resolveDefaultCompanyForTransactionalMail.js";
 
 export class RecoveryStepTwoUseCase {
   constructor(
@@ -32,14 +33,14 @@ export class RecoveryStepTwoUseCase {
         name: string;
         lastname?: string;
       };
-      const configCrud = await this.companies.getCompany(this.defaultCompanyId);
-      const configCompany = configCrud.message;
-      if (!configCompany) {
-        return {
-          status: 500,
-          message: "Configuración de empresa por defecto no encontrada",
-        };
+      const resolved = await resolveDefaultCompanyForTransactionalMail(
+        this.companies,
+        this.defaultCompanyId
+      );
+      if (!resolved.ok) {
+        return resolved.outcome;
       }
+      const configCompany = resolved.companyRow;
       const htmlMessage = `
     <p>Se ha cambiado su contraseña exitosamente.</p>
     `;

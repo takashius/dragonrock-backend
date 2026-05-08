@@ -16,7 +16,7 @@ import type { RecoveryStepOneUseCase } from "../../application/user/recoveryStep
 import type { RecoveryStepTwoUseCase } from "../../application/user/recoveryStepTwoUseCase.js";
 import type { RegisterUserPublicUseCase } from "../../application/user/registerUserPublicUseCase.js";
 import { sendUserOutcomeWithDetail } from "./userHttpMapper.js";
-import controllerError from "../../middelware/controllerError.js";
+import { sendStoreDetailError } from "./sendStoreDetailError.js";
 
 export type UserRouterDeps = {
   auth: AuthMiddlewareFactory;
@@ -332,7 +332,7 @@ export function createUserRouter(deps: UserRouterDeps): Router {
             break;
           default:
             if ("detail" in resp && resp.detail) {
-              controllerError(resp.detail, req, res);
+              sendStoreDetailError(resp.detail, req, res);
             } else {
               res.status(resp.status).send(resp.message);
             }

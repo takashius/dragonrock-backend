@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import type { NewsOutcome } from "../../application/types/newsOutcome.js";
-import controllerError from "../../middelware/controllerError.js";
+import { sendStoreDetailError } from "./sendStoreDetailError.js";
 
 /**
  * Mapea `NewsOutcome` a respuesta Express (misma semántica que el router anterior).
@@ -19,7 +19,7 @@ export function sendNewsOutcome(
     return;
   }
   if ("detail" in news && news.detail) {
-    controllerError(news.detail, req, res);
+    sendStoreDetailError(news.detail, req, res);
     return;
   }
   res.status(news.status).send(news.message);

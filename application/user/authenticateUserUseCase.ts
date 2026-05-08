@@ -1,7 +1,7 @@
 import type { Types } from "mongoose";
 import type { AccessTokenVerifier } from "../ports/accessTokenVerifier.js";
 import type { UserRepository } from "../ports/userRepository.js";
-import type { AuthUserPayload } from "../../types/auth.js";
+import type { AuthUserPayload } from "../types/authUserPayload.js";
 
 export type AuthenticateUserSuccess = {
   ok: true;

@@ -1,0 +1,24 @@
+import type { NewsOutcome } from "../types/newsOutcome.js";
+
+/**
+ * Puerto de persistencia de noticias (sin Mongoose en la capa de aplicación).
+ */
+export interface NewsRepository {
+  listFirstForCompany(companyId: string): Promise<NewsOutcome>;
+  getDetail(id: string, companyId: string): Promise<NewsOutcome>;
+  paginate(params: {
+    filter: unknown;
+    page: unknown;
+    companyId: string;
+  }): Promise<NewsOutcome>;
+  create(
+    data: Record<string, unknown>,
+    userId: string,
+    companyId: string
+  ): Promise<NewsOutcome>;
+  update(
+    data: { id: string } & Record<string, unknown>,
+    companyId: string
+  ): Promise<NewsOutcome>;
+  softDelete(id: string, companyId: string): Promise<NewsOutcome>;
+}

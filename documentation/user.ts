@@ -330,14 +330,14 @@ const addCompany = {
         in: "body",
         description: "Id user",
         required: true,
-        schema: { ttype: "string", format: "uuid" },
+        schema: { type: "string", format: "uuid" },
       },
       {
         name: "company",
         in: "body",
         description: "Id company from user",
         required: true,
-        schema: { ttype: "string", format: "uuid" },
+        schema: { type: "string", format: "uuid" },
       },
     ],
     responses: {
@@ -363,18 +363,11 @@ const selectCompany = {
         },
       },
       {
-        name: "user",
-        in: "body",
-        description: "Id user",
-        required: true,
-        schema: { ttype: "string", format: "uuid" },
-      },
-      {
         name: "company",
         in: "body",
-        description: "Id company from user",
+        description: "Id de empresa a seleccionar para el usuario autenticado",
         required: true,
-        schema: { ttype: "string", format: "uuid" },
+        schema: { type: "string", format: "uuid" },
       },
     ],
     responses: {
@@ -400,24 +393,119 @@ const removeCompany = {
         },
       },
       {
-        name: "user",
-        in: "body",
-        description: "Id user",
-        required: true,
-        schema: { ttype: "string", format: "uuid" },
-      },
-      {
         name: "company",
         in: "body",
-        description: "Id company from user",
+        description: "Id de empresa a desvincular del usuario autenticado",
         required: true,
-        schema: { ttype: "string", format: "uuid" },
+        schema: { type: "string", format: "uuid" },
       },
     ],
     responses: {
       200: {
         description: "OK",
         schema: { type: "string" },
+      },
+    },
+  },
+};
+
+const recoveryRequestCode = {
+  get: {
+    tags: ["Users"],
+    summary: "Solicitar código de recuperación de contraseña (envío por email)",
+    parameters: [
+      {
+        name: "email",
+        in: "path",
+        description: "Correo del usuario",
+        required: true,
+        type: "string",
+      },
+    ],
+    responses: {
+      200: { description: "Código enviado" },
+      400: { description: "Correo no encontrado" },
+    },
+  },
+};
+
+const recoveryApplyCode = {
+  post: {
+    tags: ["Users"],
+    summary: "Confirmar código y establecer nueva contraseña",
+    parameters: [
+      {
+        name: "body",
+        in: "body",
+        required: true,
+        schema: {
+          type: "object",
+          required: ["email", "code", "newPass"],
+          properties: {
+            email: { type: "string", format: "email" },
+            code: { type: "string" },
+            newPass: { type: "string" },
+          },
+        },
+      },
+    ],
+    responses: {
+      200: { description: "Contraseña actualizada" },
+      400: { description: "Código incorrecto" },
+    },
+  },
+};
+
+const registerPublic = {
+  post: {
+    tags: ["Users"],
+    summary: "Registro público de usuario y empresa",
+    parameters: [
+      {
+        name: "body",
+        in: "body",
+        required: true,
+        schema: {
+          type: "object",
+          required: ["name", "email", "password", "companyName", "docId"],
+          properties: {
+            name: { type: "string" },
+            email: { type: "string", format: "email" },
+            password: { type: "string" },
+            companyName: { type: "string" },
+            docId: { type: "string" },
+          },
+        },
+      },
+    ],
+    responses: {
+      201: { description: "Usuario creado" },
+      400: { description: "Validación" },
+    },
+  },
+};
+
+const logoutAll = {
+  post: {
+    tags: ["Users"],
+    summary: "Cerrar sesión en todos los dispositivos",
+    parameters: [
+      {
+        name: "Authorization",
+        in: "header",
+        description: "Authorization Bearer Token",
+        required: true,
+        schema: {
+          type: "string",
+        },
+      },
+    ],
+    responses: {
+      200: {
+        description: "OK",
+        schema: {
+          type: "string",
+        },
       },
     },
   },
@@ -488,6 +576,7 @@ export default {
   account,
   login,
   logout,
+  logoutAll,
   create,
   update,
   list,
@@ -496,5 +585,8 @@ export default {
   addCompany,
   selectCompany,
   removeCompany,
+  recoveryRequestCode,
+  recoveryApplyCode,
+  registerPublic,
   definitions,
 };

@@ -1,6 +1,5 @@
+import type { CompanyOutcome } from "../types/companyOutcome.js";
+
 export interface CompanyLookup {
-  getCompany(id: string | undefined): Promise<{
-    status: number;
-    message: unknown;
-  }>;
+  getCompany(id: string | undefined): Promise<CompanyOutcome>;
 }

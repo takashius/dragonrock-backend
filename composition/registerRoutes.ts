@@ -4,7 +4,7 @@ import { MongooseNewsRepository } from "../infrastructure/persistence/mongooseNe
 import { MongooseUserRepository } from "../infrastructure/persistence/mongooseUserRepository.js";
 import { JwtAccessTokenVerifier } from "../infrastructure/auth/jwtAccessTokenVerifier.js";
 import { MailjetMailSender } from "../infrastructure/email/mailjetMailSender.js";
-import { LegacyCompanyLookup } from "../infrastructure/company/legacyCompanyLookup.js";
+import { MongooseCompanyLookup } from "../infrastructure/company/mongooseCompanyLookup.js";
 import { ListNewsUseCase } from "../application/news/listNewsUseCase.js";
 import { GetNewsDetailUseCase } from "../application/news/getNewsDetailUseCase.js";
 import { PaginateNewsUseCase } from "../application/news/paginateNewsUseCase.js";
@@ -48,7 +48,7 @@ function buildAuthAndUserWiring() {
   const auth = createAuthMiddleware(authenticateUser);
 
   const mailSender = new MailjetMailSender();
-  const companyLookup = new LegacyCompanyLookup();
+  const companyLookup = new MongooseCompanyLookup();
   const defaultCompanyId = config.companyDefault ?? "";
 
   const userRouter = createUserRouter({

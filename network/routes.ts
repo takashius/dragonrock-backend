@@ -1,12 +1,12 @@
 import type { Express } from "express";
-import user from "../components/user/network.js";
-import news from "../components/news/network.js";
+import { registerRoutes } from "../composition/registerRoutes.js";
 
-const url_api = "";
-
+/**
+ * Entrada de enrutado para `index.ts`.
+ * Delega en la composición para mantener un solo lugar de registro de rutas.
+ */
 const routes = function (server: Express): void {
-  server.use(url_api + "/user", user);
-  server.use(url_api + "/news", news);
+  registerRoutes(server);
 };
 
 export default routes;

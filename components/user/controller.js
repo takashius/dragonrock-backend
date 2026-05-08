@@ -307,14 +307,13 @@ export async function registerUserPublic(data) {
     const configCrud = await getCompany(config.companyDefault);
     const configCompany = configCrud.message;
     const message = `
-    <p>Se ha registrado de forma exitosa en el sistema, a continuacion sus datos registrados en nuesta App.</p>
+    <p>Se ha registrado de forma exitosa en el sistema, a continuación sus datos registrados en nuestra App.</p>
     <p>
       <ul>
         <li><strong>Nombre:</strong> ${userData.name}</li>
         <li><strong>Empresa:</strong> ${userData.company}</li>
         <li><strong>Rif:</strong> ${userData.docId}</li>
         <li><strong>Correo:</strong> ${userData.email}</li>
-        <li><strong>Clave:</strong> ${userData.clave}</li>
       </ul>
     </p>
     `;
@@ -323,7 +322,7 @@ export async function registerUserPublic(data) {
       userData.email,
       `${userData.name}`,
       "Registro Exitoso",
-      "Nuevo registro en el App ErCotizador",
+      "Nuevo registro en DragonRock",
       message
     );
     return user;

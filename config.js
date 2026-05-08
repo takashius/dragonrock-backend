@@ -25,12 +25,6 @@ const config = {
     pass: process.env.MAILER_PASS,
     secure: process.env.MAILER_SECURE || false,
   },
-  cloudinary: {
-    CLOUD_NAME: process.env.CLOUD_NAME,
-    CLOUDINARY_KEY: process.env.CLOUDINARY_KEY,
-    CLOUDINARY_SECRET: process.env.CLOUDINARY_SECRET,
-    FOLDER_NAME: process.env.FOLDER_NAME
-  }
 };
 
 export default config;

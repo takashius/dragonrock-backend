@@ -1,10 +1,9 @@
-import Company from "../../components/company/model.js";
+import Company from "../persistence/mongoose/companyModel.js";
 import type { CompanyLookup } from "../../application/ports/companyLookup.js";
 import type { CompanyOutcome } from "../../application/types/companyOutcome.js";
 
 /**
  * Lectura de empresa (plantillas de correo, `COMPANY_DEFAULT`, etc.).
- * Sustituye el antiguo `components/company/store.ts`.
  */
 export class MongooseCompanyLookup implements CompanyLookup {
   async getCompany(id: string | undefined): Promise<CompanyOutcome> {

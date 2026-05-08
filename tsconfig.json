@@ -28,7 +28,6 @@
     "infrastructure/**/*.ts",
     "presentation/**/*.ts",
     "network/**/*.ts",
-    "components/**/*.ts",
     "middelware/**/*.ts",
     "documentation/**/*.ts",
     "types/**/*.ts",

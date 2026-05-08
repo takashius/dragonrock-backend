@@ -1,6 +1,6 @@
 import type { Types } from "mongoose";
-import User from "../../components/user/model.js";
-import Company from "../../components/company/model.js";
+import User from "./mongoose/userModel.js";
+import Company from "./mongoose/companyModel.js";
 import config from "../../config.js";
 import type { UserRepository } from "../../application/ports/userRepository.js";
 import type {

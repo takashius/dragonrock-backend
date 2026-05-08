@@ -2,7 +2,8 @@ import mongoose from "mongoose";
 import validator from "validator";
 import bcrypt from "bcryptjs";
 import jwt, { type SignOptions } from "jsonwebtoken";
-import config from "../../config.js";
+import config from "../../../config.js";
+
 const { Schema } = mongoose;
 
 const userSchema = new Schema({
@@ -77,7 +78,10 @@ const userSchema = new Schema({
 });
 
 userSchema.pre("save", async function (this: mongoose.Document) {
-  const user = this as mongoose.Document & { password: string; isModified: (p: string) => boolean };
+  const user = this as mongoose.Document & {
+    password: string;
+    isModified: (p: string) => boolean;
+  };
   if (user.isModified("password")) {
     user.password = await bcrypt.hash(user.password, 8);
   }

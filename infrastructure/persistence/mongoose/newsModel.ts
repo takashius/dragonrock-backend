@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+
 const { Schema } = mongoose;
 
 const newsSchema = new Schema({
@@ -34,7 +35,7 @@ const newsSchema = new Schema({
     type: [String],
     index: true,
     lowercase: true,
-    trim: true
+    trim: true,
   },
   created: {
     user: {

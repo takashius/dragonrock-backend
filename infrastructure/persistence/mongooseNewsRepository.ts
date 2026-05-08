@@ -1,4 +1,4 @@
-import News from "../../components/news/model.js";
+import News from "./mongoose/newsModel.js";
 import type { NewsRepository } from "../../application/ports/newsRepository.js";
 import type { NewsOutcome } from "../../application/types/newsOutcome.js";
 

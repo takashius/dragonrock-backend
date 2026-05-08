@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import validator from "validator";
+
 const { Schema } = mongoose;
 
 const companySchema = new Schema({
@@ -57,8 +58,8 @@ const companySchema = new Schema({
     },
     invoice: {
       type: Number,
-      default: 0
-    }
+      default: 0,
+    },
   },
   currencySymbol: {
     type: String,
@@ -100,8 +101,8 @@ const companySchema = new Schema({
       Este correo es para confirmar su presupuesto #{cotizaNumber} con {CompanyName} para que pueda revisarlo y decidir si se ajusta a sus necesidades.
       {br} {br}
       Si tienes alguna duda o pregunta sobre su presupuesto escríbenos a {emailCompany}
-      `
-    }
+      `,
+    },
   },
   configPdf: {
     language: {
@@ -170,7 +171,7 @@ const companySchema = new Schema({
         type: String,
         trim: true,
       },
-    }
+    },
   },
   created: {
     user: {

@@ -5,10 +5,11 @@ import type { PaginateNewsUseCase } from "../../application/news/paginateNewsUse
 import type { CreateNewsUseCase } from "../../application/news/createNewsUseCase.js";
 import type { UpdateNewsUseCase } from "../../application/news/updateNewsUseCase.js";
 import type { DeleteNewsUseCase } from "../../application/news/deleteNewsUseCase.js";
-import auth from "../../middelware/auth.js";
 import { sendNewsOutcome } from "./newsHttpMapper.js";
+import type { AuthMiddlewareFactory } from "./authMiddlewareFactory.js";
 
 export type NewsRouterDeps = {
+  auth: AuthMiddlewareFactory;
   listNews: ListNewsUseCase;
   getNewsDetail: GetNewsDetailUseCase;
   paginateNews: PaginateNewsUseCase;
@@ -19,6 +20,7 @@ export type NewsRouterDeps = {
 
 export function createNewsRouter(deps: NewsRouterDeps): Router {
   const router = express.Router();
+  const { auth } = deps;
 
   router.get("/", auth(), async (req, res) => {
     try {

@@ -47,7 +47,10 @@ export function wireUserHttpStack(): {
     throw new Error("JWT_KEY debe estar definido en el entorno");
   }
   const userRepository = new MongooseUserRepository();
-  const accessTokenVerifier = new JwtAccessTokenVerifier(jwtKey);
+  const accessTokenVerifier = new JwtAccessTokenVerifier(
+    jwtKey,
+    config.jwtExposeAuthErrors
+  );
   const authenticateUser = new AuthenticateUserUseCase(
     accessTokenVerifier,
     userRepository

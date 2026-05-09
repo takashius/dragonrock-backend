@@ -15,6 +15,14 @@ API HTTP en **Node.js** + **Express** + **TypeScript** + **MongoDB** (Mongoose) 
 | `npm run build`| Compila TypeScript a `dist/`                    |
 | `npm start`    | Ejecuta `node dist/index.js` (tras `build`)     |
 | `npm run typecheck` | `tsc --noEmit` (validación de tipos)      |
+| `npm run test`     | Pruebas unitarias (`node:test` + `tsx`)   |
+| `npm run test:watch` | Mismo runner en modo observación      |
+
+## Pruebas unitarias
+
+Las pruebas viven en [`test/`](test/) y usan el runner integrado **`node:test`** con **`tsx`** (sin dependencia extra de Vitest/Jest). Cubren sobre todo la capa de **aplicación** (casos de uso con repositorios simulados), **infraestructura** ligera (`JwtAccessTokenVerifier`), **config** (`parseCommaSeparatedOrigins`) y **presentación** (mappers HTTP y middleware de auth).
+
+Los repositorios Mongoose y la app Express completa no se levantan en estas pruebas; para eso conviene añadir más adelante pruebas de integración (p. ej. `supertest` + Mongo en memoria o contenedor).
 
 ## Variables de entorno
 
@@ -72,7 +80,8 @@ No commitees secretos: usa `.env` local (listado en `.gitignore`).
 ├── documentation/         # Fragmentos Swagger por módulo
 ├── types/                   # Ampliación Express (`req.user`, etc.)
 ├── domain/                  # Reservado para reglas de dominio puras (vacío)
-└── legacy/                  # Opcional: código no cableado en la API (ver legacy/README.md)
+├── legacy/                  # Opcional: código no cableado en la API (ver legacy/README.md)
+└── test/                    # Pruebas unitarias (*.test.ts)
 ```
 
 Los **modelos Mongoose** del producto activo viven en `infrastructure/persistence/mongoose/` (`userModel.ts`, `companyModel.ts`, `newsModel.ts`): son detalle de persistencia, no “componentes” genéricos.

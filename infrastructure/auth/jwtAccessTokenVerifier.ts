@@ -5,7 +5,10 @@ import type {
 } from "../../application/ports/accessTokenVerifier.js";
 
 export class JwtAccessTokenVerifier implements AccessTokenVerifier {
-  constructor(private readonly secret: string) {}
+  constructor(
+    private readonly secret: string,
+    private readonly exposeVerificationDetails: boolean
+  ) {}
 
   verify(token: string): TokenVerifyResult {
     try {
@@ -15,6 +18,9 @@ export class JwtAccessTokenVerifier implements AccessTokenVerifier {
       }
       return { ok: true, userId: String(data._id) };
     } catch (e: unknown) {
+      if (!this.exposeVerificationDetails) {
+        return { ok: false };
+      }
       const jwtMessage = e instanceof Error ? e.message : undefined;
       return { ok: false, jwtMessage };
     }

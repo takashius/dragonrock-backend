@@ -2,6 +2,12 @@
 
 API HTTP en **Node.js** + **Express** + **TypeScript** + **MongoDB** (Mongoose) para DragonRock. El código activo sigue una **arquitectura hexagonal / clean architecture**: la aplicación define casos de uso y puertos; la infraestructura implementa persistencia y servicios externos; la presentación adapta HTTP; la composición cablea todo sin lógica de negocio en los routers más allá del mapeo.
 
+## Guía de arquitectura (detallada)
+
+Documento único con **glosario**, **qué es y por qué usamos la arquitectura hexagonal**, **mapa de carpetas**, **patrones del repo** (puertos, casos de uso, outcomes, composición, Zod, auth, Swagger, tests) y **ejemplos citados del código**:
+
+**[docs/GUIA_ARQUITECTURA.md](docs/GUIA_ARQUITECTURA.md)**
+
 ## Requisitos
 
 - Node.js 20+ (recomendado; alineado con `@types/node` del proyecto)
@@ -103,9 +109,11 @@ Antes de desplegar con `NODE_ENV=production`:
 └── test/                    # Pruebas unitarias (*.test.ts)
 ```
 
-Los **modelos Mongoose** del producto activo viven en `infrastructure/persistence/mongoose/` (`userModel.ts`, `companyModel.ts`, `newsModel.ts`): son detalle de persistencia, no “componentes” genéricos.
+Los **modelos Mongoose** del producto activo viven en `infrastructure/persistence/mongoose/` (`userModel.ts`, `companyModel.ts`, `newsModel.ts`): son detalle de persistencia, no “componentes” genéricos. Para una descripción amplia de cada carpeta y términos, ver **[docs/GUIA_ARQUITECTURA.md](docs/GUIA_ARQUITECTURA.md)**.
 
 ## Arquitectura
+
+Resumen ejecutivo; la guía extendida con diagramas mentales, glosario y ejemplos está en **[docs/GUIA_ARQUITECTURA.md](docs/GUIA_ARQUITECTURA.md)**.
 
 ### Regla de dependencias
 

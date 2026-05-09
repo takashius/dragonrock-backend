@@ -1,0 +1,28 @@
+---
+description: Casos de uso, puertos y adaptadores Mongoose / servicios
+globs: application/**/*.ts,infrastructure/**/*.ts,middelware/**/*.ts
+---
+
+# Application e infrastructure
+
+## Casos de uso
+
+- Un archivo por clase **`XxxUseCase`** con método **`execute(...)`** que devuelve **`Promise<*Outcome>`** o similar definido en `application/types/`.
+- Inyectar dependencias por **constructor** (`private readonly`).
+- Errores controlados: devolver outcome con `status`/`message` (y `detail` solo donde el flujo ya lo use); evitar tragar excepciones sin log mínimo donde corresponda.
+
+## Puertos (`application/ports/`)
+
+- Interfaces pequeñas orientadas al caso de uso (`UserRepository`, `MailSender`, etc.).
+- Nombres alineados con el lenguaje del dominio del proyecto (inglés en código).
+
+## Infrastructure
+
+- Repositorios: **`mongoose*Repository.ts`** implementando el puerto; acceso a modelos desde **`persistence/mongoose/`**.
+- No importar routers ni Express desde `infrastructure/`.
+- **`middelware/`** (ruta deliberada con typo histórico): utilidades transversales (ej. mailer); respetar el nombre de carpeta existente para no romper imports.
+
+## Config / correo
+
+- Variables nuevas: **`config.ts`** + **`.env.example`** + tabla o sección en **`README.md`** si son relevantes para operadores.
+- Mailjet: inicialización perezosa y remitente desde `config` como en `middelware/mailer.ts`.

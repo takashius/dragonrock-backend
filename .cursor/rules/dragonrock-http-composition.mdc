@@ -1,0 +1,25 @@
+---
+description: Routers HTTP, validación Zod, composición y seguridad transversal
+globs: presentation/**/*.ts,composition/**/*.ts,network/**/*.ts,index.ts
+---
+
+# HTTP, presentación y composición
+
+## Routers (`presentation/http/`)
+
+- Entrada: **`create*Router(deps)`** con dependencias tipadas (casos de uso, `auth`).
+- Rutas públicas sensibles: **`validateBody`** (Zod) **antes** de rate limiters (`loginRateLimiter`, `sensitivePublicRateLimiter`) donde ya apliquen.
+- Reutilizar **`validateRequest.ts`**: `validateBody`, `validateParams`, `validateQuery`; errores **400** JSON `{ error: "Validación", issues }`.
+- Query validada: resultado en **`req.validatedQuery`** (ver `types/express.d.ts`).
+- IDs Mongo en path/body: coherencia con **`routeSchemas.ts`** (24 hex).
+- Respuestas: mappers **`sendNewsOutcome`**, **`sendUserOutcomeWithDetail`**, **`sendStoreDetailError`**; no inventar formatos distintos por ruta sin motivo.
+
+## Composición
+
+- **`wireHttpApi.ts`**: construir repos, verificadores JWT (`config.jwtExposeAuthErrors`), mail, casos de uso y pasarlos al router. No añadir lógica condicional de negocio aquí.
+- **`registerRoutes.ts`**: solo `app.use(prefix, router)`.
+
+## `index.ts`
+
+- No mezclar registro de rutas: eso es `network/` + `composition/`.
+- Mantener **`assertSecurityConfigAtStartup()`**, Helmet, CORS vía `buildCorsOptions()`, `trust proxy` según `config`, Swagger solo si `config.swaggerEnabled`.

@@ -7,7 +7,9 @@ const definition = {
     version: "2.0.0",
     title: "DragonRock API",
     description:
-      "Backend DragonRock — API documentada alineada con rutas migradas (usuarios, noticias).",
+      "Backend DragonRock — API documentada alineada con rutas migradas (usuarios, noticias).\n\n" +
+      "Errores de validación (Zod): respuesta **400** con cuerpo JSON `{ \"error\": \"Validación\", \"issues\": ... }` en rutas con cuerpo/query/params validados.\n" +
+      "Rutas públicas sensibles (login, registro, recuperación) pueden responder **429** por límite de peticiones (`express-rate-limit`).",
     license: {
       name: "MIT",
       url: "https://opensource.org/licenses/MIT",
@@ -38,9 +40,11 @@ const definition = {
     "/user/login": user.login,
     "/user/logout": user.logout,
     "/user/logoutall": user.logoutAll,
-    "/user": user.create,
-    "/user ": user.update,
-    "/user  ": user.list,
+    "/user": {
+      ...user.list,
+      ...user.create,
+      ...user.update,
+    },
     "/user/{id}": user.userByID,
     "/user/account": user.account,
     "/user/change_password": user.changePassword,

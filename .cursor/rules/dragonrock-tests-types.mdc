@@ -1,0 +1,22 @@
+---
+description: Pruebas unitarias (node:test) y tipos Express
+globs: test/**/*.ts,types/**/*.ts
+---
+
+# Tests y tipos
+
+## Tests (`test/`)
+
+- Runner: **`npm run test`** → `tsx --test "test/**/*.test.ts"` (**`node:test`**).
+- Casos de uso: dobles del puerto (objetos con métodos mínimos), **sin** Mongo ni Express salvo prueba de integración dedicada.
+- Nombres: `*.test.ts`; aserciones claras por caso.
+
+## `types/`
+
+- Ampliaciones globales de Express en **`types/express.d.ts`** (`req.user`, `req.token`, `req.validatedQuery`, etc.) con `export {}` para módulo.
+- No redeclarar en cada router; extender aquí si hace falta nueva propiedad **documentada** en `Request`.
+
+## Calidad antes de cerrar cambios
+
+- Ejecutar **`npm run typecheck`** (estricto: `noUnusedLocals`, `noUnusedParameters`).
+- Añadir o ajustar tests cuando el comportamiento del caso de uso cambie.

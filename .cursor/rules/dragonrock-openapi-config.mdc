@@ -1,0 +1,20 @@
+---
+description: Swagger 2.0, documentación por módulo y configuración
+globs: documentation/**/*.ts,swagger.ts,config.ts,.env.example
+---
+
+# OpenAPI y configuración
+
+## Swagger (`swagger.ts` + `documentation/`)
+
+- OpenAPI **2.0** (`swagger: "2.0"`): parámetros con **`type`**/`**schema**`; un solo objeto **`in: body`** por operación cuando el cuerpo es JSON (evitar varios `in: body`).
+- **Un path, varios métodos**: agrupar en un solo path (ej. `/user` con `get`/`post`/`patch`), sin rutas con espacios al final.
+- IDs Mongo: **`pattern`** `^[a-fA-F0-9]{24}$` y descripciones, no `format: uuid` salvo que el recurso sea realmente UUID.
+- Mantener **`definitions`** alineadas con Zod (`routeSchemas.ts`) y respuestas reales (códigos HTTP, ej. creación usuario **201**, noticia creada **200** según mappers).
+- Reutilizar esquemas con **`$ref`**; respuesta de validación: **`#/definitions/ValidationError`** donde aplique.
+- Tras cambiar rutas o contratos: actualizar **fragmento** en `documentation/*.ts` y paths en **`swagger.ts`**.
+
+## `config.ts`
+
+- Lectura centralizada de `process.env`; helpers existentes (`envBool`, `envInt`, `parseCommaSeparatedOrigins`).
+- Validaciones de arranque en **`assertSecurityConfigAtStartup()`**; no duplicar asserts dispersos en routers.

@@ -1,0 +1,3 @@
+# DragonRock Backend — Cursor
+
+Convenciones y arquitectura del repo están en **`.cursor/rules/*.mdc`** (capas hexagonales, HTTP/Zod/composición, application/infra, OpenAPI/config, tests/types). Ábrelos o deja `alwaysApply` activo en reglas del proyecto.

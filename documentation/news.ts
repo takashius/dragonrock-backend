@@ -6,6 +6,20 @@ const authHeader = {
   required: true,
 };
 
+const mongoIdPathParam = {
+  name: "id",
+  in: "path",
+  type: "string",
+  required: true,
+  description: "ObjectId de la noticia (24 hex)",
+  pattern: "^[a-fA-F0-9]{24}$",
+};
+
+const validation400 = {
+  description: "Validación Zod u error de negocio",
+  schema: { $ref: "#/definitions/ValidationError" },
+};
+
 const listNews = {
   get: {
     tags: ["News"],
@@ -14,6 +28,7 @@ const listNews = {
     responses: {
       200: { description: "Lista de noticias" },
       401: { description: "No autorizado" },
+      500: { description: "Error inesperado" },
     },
   },
 };
@@ -39,7 +54,9 @@ const paginateNews = {
     ],
     responses: {
       200: { description: "Resultado paginado" },
+      400: validation400,
       401: { description: "No autorizado" },
+      500: { description: "Error inesperado" },
     },
   },
 };
@@ -48,37 +65,24 @@ const newsById = {
   get: {
     tags: ["News"],
     summary: "Detalle de una noticia",
-    parameters: [
-      authHeader,
-      {
-        name: "id",
-        in: "path",
-        required: true,
-        type: "string",
-      },
-    ],
+    parameters: [authHeader, mongoIdPathParam],
     responses: {
       200: { description: "Noticia" },
-      400: { description: "No encontrada u error" },
+      400: validation400,
       401: { description: "No autorizado" },
+      404: { description: "Noticia no encontrada" },
+      500: { description: "Error inesperado" },
     },
   },
   delete: {
     tags: ["News"],
     summary: "Eliminar noticia (soft delete)",
-    parameters: [
-      authHeader,
-      {
-        name: "id",
-        in: "path",
-        required: true,
-        type: "string",
-      },
-    ],
+    parameters: [authHeader, mongoIdPathParam],
     responses: {
       200: { description: "Eliminada" },
-      400: { description: "Error" },
+      400: validation400,
       401: { description: "No autorizado" },
+      500: { description: "Error inesperado" },
     },
   },
 };
@@ -97,9 +101,10 @@ const createNews = {
       },
     ],
     responses: {
-      201: { description: "Creada" },
-      400: { description: "Validación u error" },
+      200: { description: "Noticia creada (cuerpo = documento guardado)" },
+      400: validation400,
       401: { description: "No autorizado" },
+      500: { description: "Error inesperado" },
     },
   },
 };
@@ -119,8 +124,9 @@ const updateNews = {
     ],
     responses: {
       200: { description: "Actualizada" },
-      400: { description: "Error" },
+      400: validation400,
       401: { description: "No autorizado" },
+      500: { description: "Error inesperado" },
     },
   },
 };
@@ -152,7 +158,11 @@ const definitions = {
     type: "object",
     required: ["id"],
     properties: {
-      id: { type: "string" },
+      id: {
+        type: "string",
+        pattern: "^[a-fA-F0-9]{24}$",
+        description: "ObjectId de la noticia",
+      },
       title: { type: "string" },
       description: { type: "string" },
       content: { type: "string" },

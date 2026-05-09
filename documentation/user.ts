@@ -1,18 +1,35 @@
+/** Bearer JWT (usuario autenticado; empresa activa en el token). */
+const authBearerHeader = {
+  name: "Authorization",
+  in: "header",
+  description: "Bearer JWT del usuario (empresa activa en el token)",
+  required: true,
+  type: "string",
+};
+
+/** `_id` de documento MongoDB en rutas. */
+const mongoIdPathParam = {
+  name: "id",
+  in: "path",
+  description: "ObjectId de MongoDB (24 caracteres hexadecimales)",
+  required: true,
+  type: "string",
+  pattern: "^[a-fA-F0-9]{24}$",
+};
+
+const validation400 = {
+  description:
+    "Validación fallida (Zod) o error de negocio; cuerpo JSON con `error` y `issues` si aplica validación",
+  schema: {
+    $ref: "#/definitions/ValidationError",
+  },
+};
+
 const account = {
   get: {
     tags: ["Users"],
     summary: "Get user profile",
-    parameters: [
-      {
-        name: "Authorization",
-        in: "header",
-        description: "Authorization Bearer Token",
-        required: true,
-        schema: {
-          type: "string",
-        },
-      },
-    ],
+    parameters: [authBearerHeader],
     responses: {
       200: {
         description: "OK",
@@ -20,6 +37,7 @@ const account = {
           $ref: "#/definitions/ResponseUserData",
         },
       },
+      401: { description: "Token inválido o ausente" },
     },
   },
 };
@@ -27,21 +45,13 @@ const account = {
 const login = {
   post: {
     tags: ["Users"],
-    summary: "Login user with user and password",
+    summary: "Iniciar sesión",
     parameters: [
       {
-        name: "email",
+        name: "body",
         in: "body",
-        description: "User email to enter",
         required: true,
-        schema: { type: "string", format: "email" },
-      },
-      {
-        name: "password",
-        in: "body",
-        description: "User password to enter",
-        required: true,
-        schema: { type: "string" },
+        schema: { $ref: "#/definitions/LoginBody" },
       },
     ],
     responses: {
@@ -50,6 +60,10 @@ const login = {
         schema: {
           $ref: "#/definitions/ResponseUserLoginData",
         },
+      },
+      400: validation400,
+      429: {
+        description: "Demasiados intentos de login desde esta IP (rate limit)",
       },
     },
   },
@@ -58,18 +72,8 @@ const login = {
 const logout = {
   post: {
     tags: ["Users"],
-    summary: "User logout",
-    parameters: [
-      {
-        name: "Authorization",
-        in: "header",
-        description: "Authorization Bearer Token",
-        required: true,
-        schema: {
-          type: "string",
-        },
-      },
-    ],
+    summary: "Cerrar sesión (token actual)",
+    parameters: [authBearerHeader],
     responses: {
       200: {
         description: "OK",
@@ -77,6 +81,8 @@ const logout = {
           type: "string",
         },
       },
+      400: { description: "Datos de usuario inválidos" },
+      401: { description: "No autorizado" },
     },
   },
 };
@@ -84,60 +90,26 @@ const logout = {
 const create = {
   post: {
     tags: ["Users"],
-    summary: "Create User",
+    summary: "Crear usuario (autenticado)",
     parameters: [
+      authBearerHeader,
       {
-        name: "Authorization",
-        in: "header",
-        description: "Authorization Bearer Token",
-        required: true,
-        schema: {
-          type: "string",
-        },
-      },
-      {
-        name: "name",
+        name: "body",
         in: "body",
-        description: "User name",
         required: true,
-        schema: { type: "string" },
-      },
-      {
-        name: "lastname",
-        in: "body",
-        description: "User lastname",
-        required: true,
-        schema: { type: "string" },
-      },
-      {
-        name: "phone",
-        in: "body",
-        description: "User phone number",
-        required: false,
-        schema: { type: "string" },
-      },
-      {
-        name: "email",
-        in: "body",
-        description: "User email",
-        required: true,
-        schema: { type: "string" },
-      },
-      {
-        name: "password",
-        in: "body",
-        description: "User password to enter",
-        required: true,
-        schema: { type: "string" },
+        schema: { $ref: "#/definitions/UserCreateBody" },
       },
     ],
     responses: {
-      200: {
-        description: "OK",
+      201: {
+        description: "Usuario creado",
         schema: {
           $ref: "#/definitions/ResponseUserLoginData",
         },
       },
+      400: validation400,
+      401: { description: "No autorizado" },
+      500: { description: "Error al registrar usuario" },
     },
   },
 };
@@ -145,58 +117,14 @@ const create = {
 const update = {
   patch: {
     tags: ["Users"],
-    summary: "Update User",
+    summary: "Actualizar usuario (campos opcionales salvo id)",
     parameters: [
+      authBearerHeader,
       {
-        name: "Authorization",
-        in: "header",
-        description: "Authorization Bearer Token",
-        required: true,
-        schema: {
-          type: "string",
-        },
-      },
-      {
-        name: "id",
+        name: "body",
         in: "body",
-        description: "User ID",
         required: true,
-        schema: { type: "string", format: "uuid" },
-      },
-      {
-        name: "name",
-        in: "body",
-        description: "User name",
-        required: true,
-        schema: { type: "string" },
-      },
-      {
-        name: "lastname",
-        in: "body",
-        description: "User lastname",
-        required: true,
-        schema: { type: "string" },
-      },
-      {
-        name: "phone",
-        in: "body",
-        description: "User phone number",
-        required: false,
-        schema: { type: "string" },
-      },
-      {
-        name: "email",
-        in: "body",
-        description: "User email",
-        required: true,
-        schema: { type: "string", format: "email" },
-      },
-      {
-        name: "password",
-        in: "body",
-        description: "User password to enter",
-        required: true,
-        schema: { type: "string" },
+        schema: { $ref: "#/definitions/UserUpdateBody" },
       },
     ],
     responses: {
@@ -206,6 +134,9 @@ const update = {
           $ref: "#/definitions/ResponseUserData",
         },
       },
+      400: validation400,
+      401: { description: "No autorizado" },
+      500: { description: "Error inesperado" },
     },
   },
 };
@@ -213,18 +144,8 @@ const update = {
 const list = {
   get: {
     tags: ["Users"],
-    summary: "User list",
-    parameters: [
-      {
-        name: "Authorization",
-        in: "header",
-        description: "Authorization Bearer Token",
-        required: true,
-        schema: {
-          type: "string",
-        },
-      },
-    ],
+    summary: "Listar usuarios",
+    parameters: [authBearerHeader],
     responses: {
       200: {
         description: "OK",
@@ -232,6 +153,8 @@ const list = {
           $ref: "#/definitions/Users",
         },
       },
+      401: { description: "No autorizado" },
+      500: { description: "Error inesperado" },
     },
   },
 };
@@ -239,27 +162,8 @@ const list = {
 const userByID = {
   get: {
     tags: ["Users"],
-    summary: "User by ID",
-    parameters: [
-      {
-        name: "Authorization",
-        in: "header",
-        description: "Authorization Bearer Token",
-        required: true,
-        schema: {
-          type: "string",
-        },
-      },
-      {
-        name: "id",
-        in: "path",
-        description: "id to search",
-        required: true,
-        schema: {
-          type: "string",
-        },
-      },
-    ],
+    summary: "Obtener usuario por id",
+    parameters: [authBearerHeader, mongoIdPathParam],
     responses: {
       200: {
         description: "OK",
@@ -267,6 +171,23 @@ const userByID = {
           $ref: "#/definitions/ResponseUserData",
         },
       },
+      400: validation400,
+      401: { description: "No autorizado" },
+      500: { description: "Error inesperado" },
+    },
+  },
+  delete: {
+    tags: ["Users"],
+    summary: "Eliminar usuario por id",
+    parameters: [authBearerHeader, mongoIdPathParam],
+    responses: {
+      200: {
+        description: "Usuario eliminado (mensaje texto)",
+        schema: { type: "string" },
+      },
+      400: { description: "Usuario no encontrado u error" },
+      401: { description: "No autorizado" },
+      500: { description: "Error inesperado" },
     },
   },
 };
@@ -274,70 +195,38 @@ const userByID = {
 const changePassword = {
   post: {
     tags: ["Users"],
-    summary: "Change password to logged in user",
+    summary: "Cambiar contraseña del usuario autenticado",
     parameters: [
+      authBearerHeader,
       {
-        name: "Authorization",
-        in: "header",
-        description: "Authorization Bearer Token",
-        required: true,
-        schema: {
-          type: "string",
-        },
-      },
-      {
-        name: "email",
+        name: "body",
         in: "body",
-        description: "User email",
         required: true,
-        schema: { type: "string", format: "email" },
-      },
-      {
-        name: "password",
-        in: "body",
-        description: "User password",
-        required: true,
-        schema: { type: "string" },
+        schema: { $ref: "#/definitions/ChangePasswordBody" },
       },
     ],
     responses: {
       200: {
-        description: "OK",
-        schema: {
-          type: "string",
-          format: "Password changed successfully",
-        },
+        description: "Contraseña actualizada",
+        schema: { type: "string" },
       },
+      400: validation400,
+      401: { description: "No autorizado" },
+      500: { description: "Error inesperado" },
     },
   },
 };
 const addCompany = {
   post: {
     tags: ["Users"],
-    summary: "Add company to user",
+    summary: "Asociar empresa a usuario",
     parameters: [
+      authBearerHeader,
       {
-        name: "Authorization",
-        in: "header",
-        description: "Authorization Bearer Token",
-        required: true,
-        schema: {
-          type: "string",
-        },
-      },
-      {
-        name: "user",
+        name: "body",
         in: "body",
-        description: "Id user",
         required: true,
-        schema: { type: "string", format: "uuid" },
-      },
-      {
-        name: "company",
-        in: "body",
-        description: "Id company from user",
-        required: true,
-        schema: { type: "string", format: "uuid" },
+        schema: { $ref: "#/definitions/AddCompanyBody" },
       },
     ],
     responses: {
@@ -345,29 +234,23 @@ const addCompany = {
         description: "OK",
         schema: { type: "string" },
       },
+      400: validation400,
+      401: { description: "No autorizado" },
+      500: { description: "Error inesperado" },
     },
   },
 };
 const selectCompany = {
   patch: {
     tags: ["Users"],
-    summary: "Select company to user default",
+    summary: "Seleccionar empresa por defecto",
     parameters: [
+      authBearerHeader,
       {
-        name: "Authorization",
-        in: "header",
-        description: "Authorization Bearer Token",
-        required: true,
-        schema: {
-          type: "string",
-        },
-      },
-      {
-        name: "company",
+        name: "body",
         in: "body",
-        description: "Id de empresa a seleccionar para el usuario autenticado",
         required: true,
-        schema: { type: "string", format: "uuid" },
+        schema: { $ref: "#/definitions/CompanyIdBody" },
       },
     ],
     responses: {
@@ -375,29 +258,23 @@ const selectCompany = {
         description: "OK",
         schema: { type: "string" },
       },
+      400: validation400,
+      401: { description: "No autorizado" },
+      500: { description: "Error inesperado" },
     },
   },
 };
 const removeCompany = {
   delete: {
     tags: ["Users"],
-    summary: "Remove company from user",
+    summary: "Desvincular empresa del usuario autenticado",
     parameters: [
+      authBearerHeader,
       {
-        name: "Authorization",
-        in: "header",
-        description: "Authorization Bearer Token",
-        required: true,
-        schema: {
-          type: "string",
-        },
-      },
-      {
-        name: "company",
+        name: "body",
         in: "body",
-        description: "Id de empresa a desvincular del usuario autenticado",
         required: true,
-        schema: { type: "string", format: "uuid" },
+        schema: { $ref: "#/definitions/CompanyIdBody" },
       },
     ],
     responses: {
@@ -405,6 +282,9 @@ const removeCompany = {
         description: "OK",
         schema: { type: "string" },
       },
+      400: validation400,
+      401: { description: "No autorizado" },
+      500: { description: "Error inesperado" },
     },
   },
 };
@@ -418,14 +298,17 @@ const recoveryRequestCode = {
       {
         name: "email",
         in: "path",
-        description: "Correo del usuario",
+        description: "Correo del usuario (URL-encoded si hace falta)",
         required: true,
         type: "string",
+        format: "email",
       },
     ],
     responses: {
-      200: { description: "Código enviado" },
-      400: { description: "Correo no encontrado" },
+      200: { description: "Código enviado por correo" },
+      400: validation400,
+      429: { description: "Demasiadas solicitudes (rate limit)" },
+      500: { description: "Error de red o servidor" },
     },
   },
 };
@@ -440,18 +323,14 @@ const recoveryRequestPost = {
         name: "body",
         in: "body",
         required: true,
-        schema: {
-          type: "object",
-          required: ["email"],
-          properties: {
-            email: { type: "string", format: "email" },
-          },
-        },
+        schema: { $ref: "#/definitions/RecoveryRequestBody" },
       },
     ],
     responses: {
-      200: { description: "Código enviado" },
-      400: { description: "Correo no encontrado o validación" },
+      200: { description: "Código enviado por correo" },
+      400: validation400,
+      429: { description: "Demasiadas solicitudes (rate limit)" },
+      500: { description: "Error de red o servidor" },
     },
   },
 };
@@ -465,20 +344,14 @@ const recoveryApplyCode = {
         name: "body",
         in: "body",
         required: true,
-        schema: {
-          type: "object",
-          required: ["email", "code", "newPass"],
-          properties: {
-            email: { type: "string", format: "email" },
-            code: { type: "string" },
-            newPass: { type: "string" },
-          },
-        },
+        schema: { $ref: "#/definitions/RecoveryStepTwoBody" },
       },
     ],
     responses: {
       200: { description: "Contraseña actualizada" },
-      400: { description: "Código incorrecto" },
+      400: validation400,
+      429: { description: "Demasiadas solicitudes (rate limit)" },
+      500: { description: "Error inesperado" },
     },
   },
 };
@@ -492,22 +365,14 @@ const registerPublic = {
         name: "body",
         in: "body",
         required: true,
-        schema: {
-          type: "object",
-          required: ["name", "email", "password", "companyName", "docId"],
-          properties: {
-            name: { type: "string" },
-            email: { type: "string", format: "email" },
-            password: { type: "string" },
-            companyName: { type: "string" },
-            docId: { type: "string" },
-          },
-        },
+        schema: { $ref: "#/definitions/RegisterPublicBody" },
       },
     ],
     responses: {
-      201: { description: "Usuario creado" },
-      400: { description: "Validación" },
+      201: { description: "Usuario y empresa creados" },
+      400: validation400,
+      429: { description: "Demasiadas solicitudes (rate limit)" },
+      500: { description: "Error al registrar" },
     },
   },
 };
@@ -516,17 +381,7 @@ const logoutAll = {
   post: {
     tags: ["Users"],
     summary: "Cerrar sesión en todos los dispositivos",
-    parameters: [
-      {
-        name: "Authorization",
-        in: "header",
-        description: "Authorization Bearer Token",
-        required: true,
-        schema: {
-          type: "string",
-        },
-      },
-    ],
+    parameters: [authBearerHeader],
     responses: {
       200: {
         description: "OK",
@@ -534,17 +389,131 @@ const logoutAll = {
           type: "string",
         },
       },
+      400: { description: "Datos de usuario inválidos" },
+      401: { description: "No autorizado" },
     },
   },
 };
 
 const definitions = {
-  User: {
-    required: ["id", "email", "name", "email", "lastname"],
+  ValidationError: {
+    type: "object",
+    description: "Respuesta típica de validación Zod (400)",
+    properties: {
+      error: { type: "string", example: "Validación" },
+      issues: {
+        type: "object",
+        description: "Mapa de campos a errores (formato Zod `.format()`)",
+      },
+    },
+  },
+  LoginBody: {
+    type: "object",
+    required: ["email", "password"],
+    properties: {
+      email: { type: "string", format: "email" },
+      password: { type: "string", description: "Contraseña en texto plano (HTTPS)" },
+    },
+  },
+  UserCreateBody: {
+    type: "object",
+    required: ["name", "lastname", "email", "password"],
+    properties: {
+      name: { type: "string", minLength: 1 },
+      lastname: { type: "string", minLength: 1 },
+      email: { type: "string", format: "email" },
+      password: { type: "string", minLength: 8, description: "Mínimo 8 caracteres" },
+      phone: { type: "string" },
+      photo: { type: "string" },
+    },
+    description:
+      "Campos adicionales permitidos (p. ej. datos Mongoose) se documentan como passthrough en el servidor.",
+  },
+  UserUpdateBody: {
+    type: "object",
+    required: ["id"],
     properties: {
       id: {
         type: "string",
-        format: "uuid",
+        pattern: "^[a-fA-F0-9]{24}$",
+        description: "ObjectId del usuario a modificar",
+      },
+      name: { type: "string" },
+      lastname: { type: "string" },
+      photo: { type: "string" },
+      phone: { type: "string" },
+      password: { type: "string", minLength: 8 },
+    },
+    description: "Solo `id` es obligatorio; el resto de campos son opcionales.",
+  },
+  ChangePasswordBody: {
+    type: "object",
+    required: ["password"],
+    properties: {
+      password: {
+        type: "string",
+        minLength: 8,
+        description: "Nueva contraseña (mínimo 8 caracteres)",
+      },
+    },
+  },
+  CompanyIdBody: {
+    type: "object",
+    required: ["company"],
+    properties: {
+      company: {
+        type: "string",
+        pattern: "^[a-fA-F0-9]{24}$",
+        description: "ObjectId de la empresa",
+      },
+    },
+  },
+  AddCompanyBody: {
+    type: "object",
+    required: ["user", "company"],
+    properties: {
+      user: { type: "string", pattern: "^[a-fA-F0-9]{24}$", description: "ObjectId usuario" },
+      company: {
+        type: "string",
+        pattern: "^[a-fA-F0-9]{24}$",
+        description: "ObjectId empresa a asociar",
+      },
+    },
+  },
+  RecoveryRequestBody: {
+    type: "object",
+    required: ["email"],
+    properties: {
+      email: { type: "string", format: "email" },
+    },
+  },
+  RecoveryStepTwoBody: {
+    type: "object",
+    required: ["email", "code", "newPass"],
+    properties: {
+      email: { type: "string", format: "email" },
+      code: { type: "string", minLength: 4, maxLength: 32, description: "Código recibido por correo" },
+      newPass: { type: "string", minLength: 8, maxLength: 500, description: "Nueva contraseña" },
+    },
+  },
+  RegisterPublicBody: {
+    type: "object",
+    required: ["name", "email", "password", "companyName", "docId"],
+    properties: {
+      name: { type: "string", maxLength: 200 },
+      email: { type: "string", format: "email" },
+      password: { type: "string", minLength: 8, maxLength: 500 },
+      companyName: { type: "string", maxLength: 200 },
+      docId: { type: "string", maxLength: 100, description: "RIF u otro documento de empresa" },
+    },
+  },
+  User: {
+    required: ["id", "email", "name", "lastname"],
+    properties: {
+      id: {
+        type: "string",
+        description: "ObjectId MongoDB",
+        pattern: "^[a-fA-F0-9]{24}$",
         uniqueItems: true,
       },
       email: {
@@ -568,7 +537,7 @@ const definitions = {
   },
   ResponseUserData: {
     properties: {
-      id: { type: "string", format: "uuid" },
+      id: { type: "string", pattern: "^[a-fA-F0-9]{24}$" },
       name: { type: "string" },
       lastname: { type: "string" },
       email: { type: "string", format: "email" },
@@ -577,7 +546,7 @@ const definitions = {
   },
   MiniDataUser: {
     properties: {
-      id: { type: "string", format: "uuid" },
+      id: { type: "string", pattern: "^[a-fA-F0-9]{24}$" },
       name: { type: "string" },
     },
   },
@@ -589,7 +558,7 @@ const definitions = {
   },
   ResponseUserLoginData: {
     properties: {
-      _id: { type: "string", format: "uuid" },
+      _id: { type: "string", pattern: "^[a-fA-F0-9]{24}$" },
       name: { type: "string" },
       lastname: { type: "string" },
       email: { type: "string", format: "email" },

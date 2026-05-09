@@ -21,6 +21,29 @@ import {
   loginRateLimiter,
   sensitivePublicRateLimiter,
 } from "./rateLimiters.js";
+import { validateBody, validateParams } from "./validateRequest.js";
+import {
+  addCompanyBodySchema,
+  addUserBodySchema,
+  changePasswordBodySchema,
+  companyIdBodySchema,
+  loginBodySchema,
+  mongoIdParamSchema,
+  recoveryEmailParamSchema,
+  recoveryRequestBodySchema,
+  recoveryStepTwoBodySchema,
+  registerPublicBodySchema,
+  updateUserBodySchema,
+  type AddCompanyBody,
+  type AddUserBody,
+  type ChangePasswordBody,
+  type CompanyIdBody,
+  type LoginBody,
+  type RecoveryRequestBody,
+  type RecoveryStepTwoBody,
+  type RegisterPublicBody,
+  type UpdateUserBody,
+} from "./schemas/routeSchemas.js";
 
 export type UserRouterDeps = {
   auth: AuthMiddlewareFactory;
@@ -85,15 +108,12 @@ export function createUserRouter(deps: UserRouterDeps): Router {
 
   router.post(
     "/recovery/request",
+    validateBody(recoveryRequestBodySchema),
     sensitivePublicRateLimiter,
     function (req, res) {
-      const email = (req.body as { email?: unknown })?.email;
-      if (typeof email !== "string" || !email.trim()) {
-        res.status(400).send("Email requerido");
-        return;
-      }
+      const body = req.body as RecoveryRequestBody;
       deps.recoveryStepOne
-        .execute(email.trim())
+        .execute(body.email)
         .then((result) => {
           switch (result.status) {
             case 200:
@@ -113,6 +133,7 @@ export function createUserRouter(deps: UserRouterDeps): Router {
 
   router.get(
     "/recovery/:email",
+    validateParams(recoveryEmailParamSchema),
     sensitivePublicRateLimiter,
     function (req, res) {
       deps.recoveryStepOne
@@ -134,7 +155,11 @@ export function createUserRouter(deps: UserRouterDeps): Router {
     }
   );
 
-  router.get("/:id", auth(), function (req, res) {
+  router.get(
+    "/:id",
+    auth(),
+    validateParams(mongoIdParamSchema),
+    function (req, res) {
     deps.getUser
       .execute(req.params.id)
       .then((userList) => {
@@ -153,9 +178,9 @@ export function createUserRouter(deps: UserRouterDeps): Router {
       });
   });
 
-  router.post("/", auth(), function (req, res) {
+  router.post("/", auth(), validateBody(addUserBodySchema), function (req, res) {
     deps.addUser
-      .execute(req.body as Record<string, unknown>)
+      .execute(req.body as AddUserBody)
       .then((user) => {
         switch (user.status) {
           case 201:
@@ -172,17 +197,13 @@ export function createUserRouter(deps: UserRouterDeps): Router {
       });
   });
 
-  router.post("/register", sensitivePublicRateLimiter, function (req, res) {
+  router.post(
+    "/register",
+    validateBody(registerPublicBodySchema),
+    sensitivePublicRateLimiter,
+    function (req, res) {
     deps.registerUserPublic
-      .execute(
-        req.body as {
-          name: string;
-          email: string;
-          password: string;
-          companyName: string;
-          docId: string;
-        }
-      )
+      .execute(req.body as RegisterPublicBody)
       .then((user) => {
         switch (user.status) {
           case 201:
@@ -200,13 +221,16 @@ export function createUserRouter(deps: UserRouterDeps): Router {
         console.log(e);
         res.status(500).send("Unexpected Error");
       });
-  });
+  }
+  );
 
-  router.post("/recovery", sensitivePublicRateLimiter, function (req, res) {
+  router.post(
+    "/recovery",
+    validateBody(recoveryStepTwoBodySchema),
+    sensitivePublicRateLimiter,
+    function (req, res) {
     deps.recoveryStepTwo
-      .execute(
-        req.body as { email: string; code: string; newPass: string }
-      )
+      .execute(req.body as RecoveryStepTwoBody)
       .then((user) => {
         switch (user.status) {
           case 200:
@@ -221,11 +245,16 @@ export function createUserRouter(deps: UserRouterDeps): Router {
         console.log(e);
         res.status(500).send("Unexpected Error");
       });
-  });
+  }
+  );
 
-  router.delete("/del_company", auth(), function (req, res) {
+  router.delete(
+    "/del_company",
+    auth(),
+    validateBody(companyIdBodySchema),
+    function (req, res) {
     deps.removeCompany
-      .execute(String(req.user!._id), String(req.body.company))
+      .execute(String(req.user!._id), (req.body as CompanyIdBody).company)
       .then((resp) => {
         switch (resp.status) {
           case 200:
@@ -240,9 +269,14 @@ export function createUserRouter(deps: UserRouterDeps): Router {
         console.log(e);
         res.status(500).send("Unexpected Error");
       });
-  });
+  }
+  );
 
-  router.delete("/:id", auth(), function (req, res) {
+  router.delete(
+    "/:id",
+    auth(),
+    validateParams(mongoIdParamSchema),
+    function (req, res) {
     deps.deleteUser
       .execute(req.params.id)
       .then((resp) => {
@@ -259,20 +293,12 @@ export function createUserRouter(deps: UserRouterDeps): Router {
         console.log(e);
         res.status(500).send("Unexpected Error");
       });
-  });
+  }
+  );
 
-  router.patch("/", auth(), function (req, res) {
+  router.patch("/", auth(), validateBody(updateUserBodySchema), function (req, res) {
     deps.updateUser
-      .execute(
-        req.body as {
-          id: string;
-          name?: string;
-          lastname?: string;
-          photo?: string;
-          phone?: string;
-          password?: string;
-        }
-      )
+      .execute(req.body as UpdateUserBody)
       .then((user) => {
         switch (user.status) {
           case 200:
@@ -292,9 +318,13 @@ export function createUserRouter(deps: UserRouterDeps): Router {
       });
   });
 
-  router.patch("/select_company", auth(), function (req, res) {
+  router.patch(
+    "/select_company",
+    auth(),
+    validateBody(companyIdBodySchema),
+    function (req, res) {
     deps.selectCompany
-      .execute(String(req.user!._id), String(req.body.company))
+      .execute(String(req.user!._id), (req.body as CompanyIdBody).company)
       .then((user) => {
         switch (user.status) {
           case 200:
@@ -312,11 +342,16 @@ export function createUserRouter(deps: UserRouterDeps): Router {
         console.log(e);
         res.status(500).send("Unexpected Error");
       });
-  });
+  }
+  );
 
-  router.post("/login", loginRateLimiter, function (req, res) {
+  router.post(
+    "/login",
+    validateBody(loginBodySchema),
+    loginRateLimiter,
+    function (req, res) {
     deps.loginUser
-      .execute(req.body as { email: string; password: string })
+      .execute(req.body as LoginBody)
       .then((user) => {
         switch (user.status) {
           case 200:
@@ -331,7 +366,8 @@ export function createUserRouter(deps: UserRouterDeps): Router {
         console.log(e);
         res.status(500).send("Unexpected Error");
       });
-  });
+  }
+  );
 
   router.post("/logout", auth(), function (req, res) {
     deps.logoutUser
@@ -355,9 +391,13 @@ export function createUserRouter(deps: UserRouterDeps): Router {
       });
   });
 
-  router.post("/change_password", auth(), function (req, res) {
+  router.post(
+    "/change_password",
+    auth(),
+    validateBody(changePasswordBodySchema),
+    function (req, res) {
     deps.changePassword
-      .execute(req.user!, req.body.password as string)
+      .execute(req.user!, (req.body as ChangePasswordBody).password)
       .then((resp) => {
         switch (resp.status) {
           case 200:
@@ -379,11 +419,17 @@ export function createUserRouter(deps: UserRouterDeps): Router {
         console.log(e);
         res.status(500).send("Unexpected Error");
       });
-  });
+  }
+  );
 
-  router.post("/add_company", auth(), function (req, res) {
+  router.post(
+    "/add_company",
+    auth(),
+    validateBody(addCompanyBodySchema),
+    function (req, res) {
+    const b = req.body as AddCompanyBody;
     deps.addCompany
-      .execute(String(req.body.user), String(req.body.company))
+      .execute(b.user, b.company)
       .then((resp) => {
         switch (resp.status) {
           case 200:
@@ -401,7 +447,8 @@ export function createUserRouter(deps: UserRouterDeps): Router {
         console.log(e);
         res.status(500).send("Unexpected Error");
       });
-  });
+  }
+  );
 
   return router;
 }

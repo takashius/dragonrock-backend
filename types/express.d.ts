@@ -5,6 +5,8 @@ declare global {
     interface Request {
       user?: AuthUserPayload;
       token?: string;
+      /** Relleno por `validateQuery` en rutas que lo usan. */
+      validatedQuery?: unknown;
     }
   }
 }

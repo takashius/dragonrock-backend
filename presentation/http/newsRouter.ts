@@ -7,6 +7,16 @@ import type { UpdateNewsUseCase } from "../../application/news/updateNewsUseCase
 import type { DeleteNewsUseCase } from "../../application/news/deleteNewsUseCase.js";
 import { sendNewsOutcome } from "./newsHttpMapper.js";
 import type { AuthMiddlewareFactory } from "./authMiddlewareFactory.js";
+import { validateBody, validateParams, validateQuery } from "./validateRequest.js";
+import {
+  createNewsBodySchema,
+  mongoIdParamSchema,
+  paginateNewsQuerySchema,
+  updateNewsBodySchema,
+  type CreateNewsBody,
+  type PaginateNewsQuery,
+  type UpdateNewsBody,
+} from "./schemas/routeSchemas.js";
 
 export type NewsRouterDeps = {
   auth: AuthMiddlewareFactory;
@@ -32,11 +42,16 @@ export function createNewsRouter(deps: NewsRouterDeps): Router {
     }
   });
 
-  router.get("/paginate", auth(), async (req, res) => {
+  router.get(
+    "/paginate",
+    auth(),
+    validateQuery(paginateNewsQuerySchema),
+    async (req, res) => {
     try {
+      const q = req.validatedQuery as PaginateNewsQuery;
       const news = await deps.paginateNews.execute({
-        filter: req.query.filter,
-        page: req.query.page,
+        filter: q.filter,
+        page: q.page,
         companyId: String(req.user!.company),
       });
       sendNewsOutcome(res, req, news);
@@ -44,9 +59,14 @@ export function createNewsRouter(deps: NewsRouterDeps): Router {
       console.log("[ERROR] -> paginateNews", e);
       res.status(500).send("Unexpected Error");
     }
-  });
+  }
+  );
 
-  router.get("/:id", auth(), async (req, res) => {
+  router.get(
+    "/:id",
+    auth(),
+    validateParams(mongoIdParamSchema),
+    async (req, res) => {
     try {
       const news = await deps.getNewsDetail.execute(
         req.params.id,
@@ -57,12 +77,13 @@ export function createNewsRouter(deps: NewsRouterDeps): Router {
       console.log("[ERROR] -> getNewsDetail", e);
       res.status(500).send("Unexpected Error");
     }
-  });
+  }
+  );
 
-  router.post("/", auth(), async (req, res) => {
+  router.post("/", auth(), validateBody(createNewsBodySchema), async (req, res) => {
     try {
       const news = await deps.createNews.execute(
-        req.body as Record<string, unknown>,
+        req.body as CreateNewsBody,
         String(req.user!._id),
         String(req.user!.company)
       );
@@ -73,10 +94,10 @@ export function createNewsRouter(deps: NewsRouterDeps): Router {
     }
   });
 
-  router.patch("/", auth(), async (req, res) => {
+  router.patch("/", auth(), validateBody(updateNewsBodySchema), async (req, res) => {
     try {
       const news = await deps.updateNews.execute(
-        req.body as { id: string } & Record<string, unknown>,
+        req.body as UpdateNewsBody,
         String(req.user!.company)
       );
       sendNewsOutcome(res, req, news);
@@ -86,7 +107,11 @@ export function createNewsRouter(deps: NewsRouterDeps): Router {
     }
   });
 
-  router.delete("/:id", auth(), async (req, res) => {
+  router.delete(
+    "/:id",
+    auth(),
+    validateParams(mongoIdParamSchema),
+    async (req, res) => {
     try {
       const news = await deps.deleteNews.execute(
         req.params.id,
@@ -97,7 +122,8 @@ export function createNewsRouter(deps: NewsRouterDeps): Router {
       console.log("[ERROR] -> deleteNews", e);
       res.status(500).send("Unexpected Error");
     }
-  });
+  }
+  );
 
   return router;
 }

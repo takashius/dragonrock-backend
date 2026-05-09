@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import type { CorsOptions } from "cors";
 
 if (process.env.NODE_ENV !== "production") {
   dotenv.config();
@@ -116,6 +117,28 @@ const config: AppConfig = {
 };
 
 export default config;
+
+/** CORS: en desarrollo sin `CORS_ORIGINS` se deja permisivo; en producción usar siempre lista explícita (validada en arranque). */
+export function buildCorsOptions(): CorsOptions {
+  if (!config.isProduction && config.corsOrigins.length === 0) {
+    return {};
+  }
+  const allowed = new Set(config.corsOrigins);
+  return {
+    origin(origin, callback) {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+      if (allowed.has(origin)) {
+        callback(null, true);
+        return;
+      }
+      callback(null, false);
+    },
+    credentials: true,
+  };
+}
 
 /**
  * Validaciones que deben fallar el arranque en producción (o cuando se exigen credenciales).

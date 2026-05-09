@@ -41,13 +41,32 @@ Cargadas con `dotenv` fuera de producción (`config.ts`). Las más importantes:
 | `PUBLIC_ROUTE`     | Ruta estática pública |
 | `MAILER_*`         | Configuración Mailjet / correo (`MAILER_HOST`, `MAILER_PORT`, `MAILER_USER`, `MAILER_PASS`, `MAILER_SECURE`) |
 | `MONGO_DEBUG`      | Depuración Mongoose |
+| `CORS_ORIGINS`     | Orígenes CORS permitidos (coma). **Obligatorio en producción** (lista no vacía). En desarrollo, vacío = CORS permisivo |
+| `TRUST_PROXY`      | Proxies de confianza (`app.set('trust proxy', n)`). Tras balanceador/Ingress suele ser `1` |
+| `SWAGGER_ENABLED`  | En `NODE_ENV=production`, `/api-docs` solo si es `true`. En desarrollo, por defecto activo salvo `false` |
+| `JWT_EXPOSE_AUTH_ERRORS` | En producción, detalle de fallos JWT en la respuesta solo si es `true` (por defecto desactivado) |
+| `MAILJET_REQUIRED` | Si es `true`, exige claves Mailjet y `MAIL_FROM_EMAIL` al arrancar (además de la regla en producción) |
+| `MAIL_FROM_EMAIL` / `MAIL_FROM_NAME` | Remitente Mailjet (email verificado + nombre mostrado) |
+| `RATE_LIMIT_*`     | Ventanas y máximos para `express-rate-limit` en login y rutas públicas sensibles (registro, recuperación) |
 
 No commitees secretos: usa `.env` local (listado en `.gitignore`).
+
+### Producción (hardening)
+
+Antes de desplegar con `NODE_ENV=production`:
+
+1. Define **`CORS_ORIGINS`** con los orígenes exactos del front (el arranque falla si queda vacío).
+2. Configura **`MJ_APIKEY_PUBLIC`**, **`MJ_APIKEY_PRIVATE`** y **`MAIL_FROM_EMAIL`** (y opcionalmente `MAIL_FROM_NAME`). El arranque valida esto cuando Mailjet es obligatorio (producción o `MAILJET_REQUIRED=true`).
+3. Tras un reverse proxy que inyecta `X-Forwarded-*`, ajusta **`TRUST_PROXY`** (habitualmente `1`) para que límites por IP y URLs correctas funcionen.
+4. **`SWAGGER_ENABLED`**: deja la documentación interactiva desactivada en producción salvo que la necesites explícitamente (`true`).
+5. La API usa **Helmet**, **CORS explícito**, **rate limiting** en `POST /user/login`, `POST /user/register`, solicitud de recuperación y confirmación de código.
+
+**Recuperación de contraseña:** se recomienda **`POST /user/recovery/request`** con cuerpo `{ "email": "..." }`. La ruta histórica **`GET /user/recovery/:email`** expone el correo en la URL y en logs intermedios, lo que puede facilitar **enumeración de cuentas**; se mantiene por compatibilidad pero está deprecada en la documentación OpenAPI.
 
 ## Estructura de carpetas
 
 ```
-├── index.ts                 # Arranque: DB, Express, CORS, Swagger, estáticos
+├── index.ts                 # Arranque: DB, Express, Helmet, CORS, Swagger condicional, estáticos
 ├── config.ts                # Configuración centralizada desde env
 ├── db.ts                    # Conexión MongoDB
 ├── swagger.ts               # Definición Swagger 2.0
@@ -108,7 +127,7 @@ La autenticación usa **JWT** en `Authorization: Bearer <token>`. El middleware 
 
 ### Documentación OpenAPI
 
-- **`/api-docs`**: Swagger UI.
+- **`/api-docs`**: Swagger UI (solo si `swaggerEnabled` en configuración; en producción típicamente desactivado).
 - Definición en `swagger.ts` + `documentation/user.ts` y `documentation/news.ts`.
 
 ## Principios de diseño (resumen)

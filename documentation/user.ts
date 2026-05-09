@@ -412,7 +412,8 @@ const removeCompany = {
 const recoveryRequestCode = {
   get: {
     tags: ["Users"],
-    summary: "Solicitar código de recuperación de contraseña (envío por email)",
+    summary:
+      "[Deprecado] Solicitar código por email vía path — puede facilitar enumeración de cuentas. Preferir POST /user/recovery/request.",
     parameters: [
       {
         name: "email",
@@ -425,6 +426,32 @@ const recoveryRequestCode = {
     responses: {
       200: { description: "Código enviado" },
       400: { description: "Correo no encontrado" },
+    },
+  },
+};
+
+const recoveryRequestPost = {
+  post: {
+    tags: ["Users"],
+    summary:
+      "Solicitar código de recuperación (recomendado; cuerpo JSON con email)",
+    parameters: [
+      {
+        name: "body",
+        in: "body",
+        required: true,
+        schema: {
+          type: "object",
+          required: ["email"],
+          properties: {
+            email: { type: "string", format: "email" },
+          },
+        },
+      },
+    ],
+    responses: {
+      200: { description: "Código enviado" },
+      400: { description: "Correo no encontrado o validación" },
     },
   },
 };
@@ -586,6 +613,7 @@ export default {
   selectCompany,
   removeCompany,
   recoveryRequestCode,
+  recoveryRequestPost,
   recoveryApplyCode,
   registerPublic,
   definitions,

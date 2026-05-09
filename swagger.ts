@@ -47,6 +47,7 @@ const definition = {
     "/user/add_company": user.addCompany,
     "/user/select_company": user.selectCompany,
     "/user/del_company": user.removeCompany,
+    "/user/recovery/request": user.recoveryRequestPost,
     "/user/recovery/{email}": user.recoveryRequestCode,
     "/user/recovery": user.recoveryApplyCode,
     "/user/register": user.registerPublic,

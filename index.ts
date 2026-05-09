@@ -1,8 +1,12 @@
 import express, { static as expressStatic } from "express";
 import bodyParser from "body-parser";
 import path from "path";
+import helmet from "helmet";
 import db from "./db.js";
-import config from "./config.js";
+import config, {
+  assertSecurityConfigAtStartup,
+  buildCorsOptions,
+} from "./config.js";
 import router from "./network/routes.js";
 import cors from "cors";
 import definition from "./swagger.js";
@@ -21,6 +25,14 @@ async function start(): Promise<void> {
   }
 
   try {
+    assertSecurityConfigAtStartup();
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error(msg);
+    process.exit(1);
+  }
+
+  try {
     await db(config.dbUrl);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
@@ -29,19 +41,24 @@ async function start(): Promise<void> {
   }
 
   const server = express();
+  if (config.trustProxy > 0) {
+    server.set("trust proxy", config.trustProxy);
+  }
+  server.use(helmet({ contentSecurityPolicy: false }));
   server.use(bodyParser.json());
-  // TODO(producción): restringir CORS (origin explícitos, métodos permitidos).
-  server.use(cors());
+  server.use(cors(buildCorsOptions()));
 
   router(server);
 
-  server.use(
-    "/api-docs",
-    swaggerUi.serve,
-    swaggerUi.setup(definition, {
-      swaggerOptions: { defaultModelsExpandDepth: -1 },
-    })
-  );
+  if (config.swaggerEnabled) {
+    server.use(
+      "/api-docs",
+      swaggerUi.serve,
+      swaggerUi.setup(definition, {
+        swaggerOptions: { defaultModelsExpandDepth: -1 },
+      })
+    );
+  }
 
   server.get("/active-response", (_req, res) => {
     res.json({ active: true });

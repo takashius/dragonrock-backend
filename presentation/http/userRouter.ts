@@ -17,6 +17,10 @@ import type { RecoveryStepTwoUseCase } from "../../application/user/recoveryStep
 import type { RegisterUserPublicUseCase } from "../../application/user/registerUserPublicUseCase.js";
 import { sendUserOutcomeWithDetail } from "./userHttpMapper.js";
 import { sendStoreDetailError } from "./sendStoreDetailError.js";
+import {
+  loginRateLimiter,
+  sensitivePublicRateLimiter,
+} from "./rateLimiters.js";
 
 export type UserRouterDeps = {
   auth: AuthMiddlewareFactory;
@@ -79,24 +83,56 @@ export function createUserRouter(deps: UserRouterDeps): Router {
       });
   });
 
-  router.get("/recovery/:email", function (req, res) {
-    deps.recoveryStepOne
-      .execute(req.params.email)
-      .then((result) => {
-        switch (result.status) {
-          case 200:
-            res.status(200).send(result.message);
-            break;
-          default:
-            res.status(result.status).send(result.message);
-            break;
-        }
-      })
-      .catch((e: unknown) => {
-        console.log(e);
-        res.status(500).send("Unexpected network Error");
-      });
-  });
+  router.post(
+    "/recovery/request",
+    sensitivePublicRateLimiter,
+    function (req, res) {
+      const email = (req.body as { email?: unknown })?.email;
+      if (typeof email !== "string" || !email.trim()) {
+        res.status(400).send("Email requerido");
+        return;
+      }
+      deps.recoveryStepOne
+        .execute(email.trim())
+        .then((result) => {
+          switch (result.status) {
+            case 200:
+              res.status(200).send(result.message);
+              break;
+            default:
+              res.status(result.status).send(result.message);
+              break;
+          }
+        })
+        .catch((e: unknown) => {
+          console.log(e);
+          res.status(500).send("Unexpected network Error");
+        });
+    }
+  );
+
+  router.get(
+    "/recovery/:email",
+    sensitivePublicRateLimiter,
+    function (req, res) {
+      deps.recoveryStepOne
+        .execute(req.params.email)
+        .then((result) => {
+          switch (result.status) {
+            case 200:
+              res.status(200).send(result.message);
+              break;
+            default:
+              res.status(result.status).send(result.message);
+              break;
+          }
+        })
+        .catch((e: unknown) => {
+          console.log(e);
+          res.status(500).send("Unexpected network Error");
+        });
+    }
+  );
 
   router.get("/:id", auth(), function (req, res) {
     deps.getUser
@@ -136,7 +172,7 @@ export function createUserRouter(deps: UserRouterDeps): Router {
       });
   });
 
-  router.post("/register", function (req, res) {
+  router.post("/register", sensitivePublicRateLimiter, function (req, res) {
     deps.registerUserPublic
       .execute(
         req.body as {
@@ -166,7 +202,7 @@ export function createUserRouter(deps: UserRouterDeps): Router {
       });
   });
 
-  router.post("/recovery", function (req, res) {
+  router.post("/recovery", sensitivePublicRateLimiter, function (req, res) {
     deps.recoveryStepTwo
       .execute(
         req.body as { email: string; code: string; newPass: string }
@@ -278,7 +314,7 @@ export function createUserRouter(deps: UserRouterDeps): Router {
       });
   });
 
-  router.post("/login", function (req, res) {
+  router.post("/login", loginRateLimiter, function (req, res) {
     deps.loginUser
       .execute(req.body as { email: string; password: string })
       .then((user) => {

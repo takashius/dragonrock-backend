@@ -1,5 +1,6 @@
 import MailjetImport from "node-mailjet";
 import mails from "./mails/index.js";
+import config from "../config.js";
 
 const Mailjet = MailjetImport as unknown as new (opts: {
   apiKey: string;
@@ -11,10 +12,24 @@ const Mailjet = MailjetImport as unknown as new (opts: {
   ) => { request: (body: unknown) => Promise<unknown> };
 };
 
-const mailjet = new Mailjet({
-  apiKey: process.env.MJ_APIKEY_PUBLIC || "your-api-key",
-  apiSecret: process.env.MJ_APIKEY_PRIVATE || "your-api-secret",
-});
+type MailjetClient = InstanceType<typeof Mailjet>;
+
+let mailjetClient: MailjetClient | undefined;
+
+function getMailjetClient(): MailjetClient {
+  if (mailjetClient) {
+    return mailjetClient;
+  }
+  const pub = process.env.MJ_APIKEY_PUBLIC?.trim();
+  const priv = process.env.MJ_APIKEY_PRIVATE?.trim();
+  if (!pub || !priv) {
+    throw new Error(
+      "[mailer] Mailjet no configurado: define MJ_APIKEY_PUBLIC y MJ_APIKEY_PRIVATE."
+    );
+  }
+  mailjetClient = new Mailjet({ apiKey: pub, apiSecret: priv });
+  return mailjetClient;
+}
 
 export async function mailer(
   _config: unknown,
@@ -24,14 +39,22 @@ export async function mailer(
   titulo: string,
   mensaje: string
 ): Promise<void> {
+  const fromEmail = config.mailFromEmail?.trim();
+  if (!fromEmail) {
+    throw new Error(
+      "[mailer] MAIL_FROM_EMAIL no definido (remitente verificado en Mailjet)."
+    );
+  }
+  const fromName = config.mailFromName;
+  const mj = getMailjetClient();
   const body = mails.MailDefault(titulo, mensaje);
 
-  await mailjet.post("send", { version: "v3.1" }).request({
+  await mj.post("send", { version: "v3.1" }).request({
     Messages: [
       {
         From: {
-          Email: "envios@erdesarrollo.com.ve",
-          Name: "DragonRock",
+          Email: fromEmail,
+          Name: fromName,
         },
         To: [
           {

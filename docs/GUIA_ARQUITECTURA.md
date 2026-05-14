@@ -14,7 +14,7 @@ Este documento describe la **organización del repositorio**, la **arquitectura 
 | **Adaptador** | **Implementación** de un puerto con tecnología concreta (Mongoose, Mailjet, `jsonwebtoken`…). Vive en `infrastructure/`. |
 | **Adaptador de entrada (driving)** | En nuestro caso, principalmente **HTTP**: Express recibe la petición y la traduce a llamadas al caso de uso. Carpeta `presentation/http/`. |
 | **Adaptador de salida (driven)** | Persistencia, APIs externas, sistema de archivos. Ej.: `MongooseUserRepository`. |
-| **Composición (composition root)** | El lugar donde se **ensamblan** implementaciones y casos de uso y se inyectan en los routers. Aquí: `composition/wireHttpApi.ts` y `composition/registerRoutes.ts`. |
+| **Composición (composition root)** | El lugar donde se **ensamblan** implementaciones y casos de uso y se inyectan en los routers. Aquí: `composition/wireUserHttpStack.ts`, `composition/wireNewsRouter.ts` (y `wireHttpApi.ts` como reexportación), más `registerRoutes.ts`. |
 | **Outcome** | Objeto de resultado (`UserOutcome`, `NewsOutcome`, …) con `status` HTTP-like y `message` (y a veces `detail`) que el **mapper de presentación** convierte en respuesta Express. |
 | **Mapper HTTP** | Funciones que traducen un `*Outcome` a `res.status().send()` (o JSON de error). Ej.: `sendNewsOutcome`, `sendUserOutcomeWithDetail`. |
 | **DTO / cuerpo de petición** | Datos que llegan por HTTP; los validamos con **Zod** (`presentation/http/schemas/routeSchemas.ts`) antes de pasarlos al caso de uso. |
@@ -60,7 +60,7 @@ La idea no es dibujar seis lados literalmente, sino **invertir dependencias**: e
 | **Aplicación** | `application/` | Casos de uso + `ports/` + `types/`. Sin Express/Mongoose. |
 | **Infraestructura** | `infrastructure/` | Implementaciones: `mongoose*Repository`, JWT, Mailjet, lookups. Modelos en `persistence/mongoose/`. |
 | **Presentación** | `presentation/http/` | Routers, validación Zod, mappers, auth factory, rate limiters. |
-| **Composición** | `composition/` | `wireHttpApi.ts` (fábricas) + `registerRoutes.ts` (montaje en `app`). |
+| **Composición** | `composition/` | `registerRoutes.ts` + un **`wire*.ts` por módulo** (p. ej. `wireUserHttpStack.ts`, `wireNewsRouter.ts`); `wireHttpApi.ts` reexporta para imports estables. |
 | **Entrada HTTP mínima** | `network/routes.ts` | Solo delega en `registerRoutes`. |
 | **Arranque** | `index.ts`, `config.ts`, `db.ts` | Servidor, seguridad transversal, conexión BD. |
 | **Contrato API** | `swagger.ts`, `documentation/` | OpenAPI 2.0 para Swagger UI. |
@@ -77,7 +77,7 @@ La idea no es dibujar seis lados literalmente, sino **invertir dependencias**: e
 1. **Express** recibe la petición en un router de `presentation/http/*Router.ts`.
 2. Opcional: **rate limit**, **Zod** (`validateBody` / `validateParams` / `validateQuery`), **auth** (`auth()`).
 3. El handler llama a **`deps.algoUseCase.execute(...)`** con datos ya validados.
-4. El caso de uso usa **puertos** (interfaces); en runtime la implementación es la de **infrastructure** (inyectada en `wireHttpApi.ts`).
+4. El caso de uso usa **puertos** (interfaces); en runtime la implementación es la de **infrastructure** (inyectada en el `wire*` del módulo correspondiente).
 5. El caso de uso devuelve un **`Outcome`**.
 6. El **mapper** traduce el outcome a `res.status(...).send(...)`.
 
@@ -177,9 +177,9 @@ export type UserOutcome = {
 
 ### 6.4. Composición: cablear adaptadores y casos de uso
 
-En `composition/wireHttpApi.ts` se instancian repositorios reales, casos de uso y el router con un objeto `deps`:
+En `composition/wireUserHttpStack.ts` se instancian repositorios reales, casos de uso y el router con un objeto `deps`:
 
-```64:72:composition/wireHttpApi.ts
+```55:66:composition/wireUserHttpStack.ts
   const userRouter = createUserRouter({
     auth,
     listUsers: new ListUsersUseCase(userRepository),
@@ -189,7 +189,11 @@ En `composition/wireHttpApi.ts` se instancian repositorios reales, casos de uso 
     updateUser: new UpdateUserUseCase(userRepository),
     loginUser: new LoginUserUseCase(userRepository),
     logoutUser: new LogoutUserUseCase(userRepository),
-    // ...
+    logoutAll: new LogoutAllUseCase(userRepository),
+    changePassword: new ChangePasswordUseCase(userRepository),
+    addCompany: new AddCompanyUseCase(userRepository),
+    removeCompany: new RemoveCompanyUseCase(userRepository),
+    selectCompany: new SelectCompanyUseCase(userRepository),
 ```
 
 **Cómo lo usamos:** cualquier nuevo caso de uso se **construye aquí** y se pasa al `create*Router`. No se usa contenedor IoC externo; es **DI manual** explícita.
@@ -300,7 +304,7 @@ Cualquier ruta nueva debe reflejarse aquí para que `/api-docs` (cuando esté ha
 2. Caso(s) de uso en `application/<contexto>/` con `execute` y tipos en `application/types/` si hace falta.
 3. Implementación en `infrastructure/` (y modelos en `mongoose/` si aplica).
 4. Router en `presentation/http/` + esquemas Zod + mapper si el patrón de respuesta es nuevo.
-5. `wireHttpApi.ts` + `registerRoutes.ts`.
+5. Nuevo archivo `composition/wireTuModulo.ts` + reexport en `wireHttpApi.ts` (opcional) + `registerRoutes.ts`.
 6. `documentation/*.ts` + `swagger.ts`.
 7. Pruebas en `test/`.
 8. `npm run typecheck` y `npm run test`.
@@ -314,7 +318,7 @@ Cualquier ruta nueva debe reflejarse aquí para que `/api-docs` (cuando esté ha
 | Ejemplo caso de uso simple | `application/user/loginUserUseCase.ts` |
 | Ejemplo router con validación y límites | `presentation/http/userRouter.ts` |
 | Esquemas Zod HTTP | `presentation/http/schemas/routeSchemas.ts` |
-| Composición usuario + noticias | `composition/wireHttpApi.ts` |
+| Composición usuario + noticias | `composition/wireUserHttpStack.ts`, `composition/wireNewsRouter.ts` |
 | Mapeo respuestas noticias | `presentation/http/newsHttpMapper.ts` |
 | Reglas para el agente / IDE | `.cursor/rules/*.mdc` |
 

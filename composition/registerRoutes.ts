@@ -2,9 +2,8 @@ import type { Express } from "express";
 import { wireNewsRouter, wireUserHttpStack } from "./wireHttpApi.js";
 
 /**
- * Registro de rutas Express (fase 5: montaje mínimo; el cableado vive en wireHttpApi.ts).
- *
- * Capas: application, infrastructure (incl. modelos Mongoose), presentation/http y composition.
+ * Registro de rutas Express (montaje mínimo). El cableado por módulo vive en
+ * `wireUserHttpStack.ts`, `wireNewsRouter.ts` (reexportados por `wireHttpApi.ts`).
  */
 const API_PREFIX = "";
 

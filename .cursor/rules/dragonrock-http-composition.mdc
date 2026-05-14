@@ -16,7 +16,7 @@ globs: presentation/**/*.ts,composition/**/*.ts,network/**/*.ts,index.ts
 
 ## Composición
 
-- **`wireHttpApi.ts`**: construir repos, verificadores JWT (`config.jwtExposeAuthErrors`), mail, casos de uso y pasarlos al router. No añadir lógica condicional de negocio aquí.
+- **`wireUserHttpStack.ts` / `wireNewsRouter.ts`** (y futuros `wire*.ts`): construir repos, verificadores JWT (`config.jwtExposeAuthErrors`), mail, casos de uso y pasarlos al router. **`wireHttpApi.ts`** solo reexporta. No añadir lógica condicional de negocio aquí.
 - **`registerRoutes.ts`**: solo `app.use(prefix, router)`.
 
 ## `index.ts`

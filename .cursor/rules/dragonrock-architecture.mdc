@@ -10,7 +10,7 @@ alwaysApply: true
 - **`application/`**: casos de uso + **`ports/`** (interfaces) + **`types/`** (outcomes, payloads). **Prohibido** importar Express, Mongoose ni implementaciones concretas.
 - **`infrastructure/`**: implementaciones de puertos (Mongoose, JWT, Mailjet, etc.). Modelos en **`infrastructure/persistence/mongoose/`**.
 - **`presentation/http/`**: routers Express, `validateBody`/`validateParams`/`validateQuery` (Zod), mappers (`*HttpMapper.ts`), rate limiters. **Solo** mapeo HTTP ↔ DTOs del caso de uso; **sin** reglas de negocio nuevas.
-- **`composition/`**: `wireHttpApi.ts` y `registerRoutes.ts` — instanciación y DI manual. **Sin** lógica de negocio.
+- **`composition/`**: `registerRoutes.ts` + **`wire*.ts` por módulo** (`wireUserHttpStack.ts`, `wireNewsRouter.ts`, …). `wireHttpApi.ts` reexporta para mantener `import { … } from "./wireHttpApi.js"`. **Sin** lógica de negocio.
 - **`network/routes.ts`**: delega solo en `composition/registerRoutes.ts`.
 - **`index.ts`**: arranque (DB, Helmet, CORS, `assertSecurityConfigAtStartup`, Swagger condicional, estáticos). No registrar rutas aquí.
 
@@ -20,7 +20,7 @@ alwaysApply: true
 2. Caso(s) de uso en `application/<dominio>/` devolviendo tipos tipo `*Outcome` ya existentes o nuevos en `application/types/`.
 3. Implementación en `infrastructure/` que implemente el puerto.
 4. Router en `presentation/http/*Router.ts` + esquemas Zod en `presentation/http/schemas/routeSchemas.ts` (o archivo por dominio si crece).
-5. Cablear en `composition/wireHttpApi.ts` y montar prefijo en `composition/registerRoutes.ts`.
+5. Cablear en `composition/wireTuModulo.ts` (y reexport en `wireHttpApi.ts` si quieres un solo entrypoint) y montar prefijo en `composition/registerRoutes.ts`.
 6. OpenAPI en `documentation/<modulo>.ts` y path en `swagger.ts`.
 7. Pruebas en `test/` con `node:test` + `tsx` (dobles de puertos, sin levantar Express/Mongo salvo integración explícita).
 

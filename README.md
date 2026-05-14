@@ -82,7 +82,9 @@ Antes de desplegar con `NODE_ENV=production`:
 │
 ├── composition/             # Composición (DI manual)
 │   ├── registerRoutes.ts    # Montaje `/user` y `/news` en Express
-│   └── wireHttpApi.ts       # Fábricas: repos, casos de uso, auth, routers
+│   ├── wireHttpApi.ts       # Reexporta cables por módulo (entrada estable)
+│   ├── wireUserHttpStack.ts # Usuario: repos, JWT, mail, casos de uso, router
+│   └── wireNewsRouter.ts    # Noticias: repo, casos de uso, router
 │
 ├── application/             # Casos de uso + puertos + tipos de resultado
 │   ├── ports/               # Interfaces (repositorios, mail, JWT, empresa…)

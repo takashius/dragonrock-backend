@@ -44,6 +44,8 @@ Cargadas con `dotenv` fuera de producción (`config.ts`). Las más importantes:
 | `JWT_EXPIRES_IN`   | Caducidad del token (por defecto `365d`) |
 | `COMPANY_DEFAULT`  | ID de empresa usada en plantillas de correo (registro, recuperación, etc.) |
 | `USER_ADMIN`       | Usuario administrador (registro público de empresa) |
+| `CLOUD_NAME` / `CLOUDINARY_KEY` / `CLOUDINARY_SECRET` | Credenciales Cloudinary para subida/eliminación de archivos |
+| `FOLDER_NAME`      | Carpeta por defecto en Cloudinary (ej. `dragonrock`) |
 | `PORT` / `HOST`    | Servidor HTTP (por defecto `3031`, `http://localhost`) |
 | `PUBLIC_ROUTE`     | Ruta estática pública |
 | `MAILER_*`         | Configuración Mailjet / correo (`MAILER_HOST`, `MAILER_PORT`, `MAILER_USER`, `MAILER_PASS`, `MAILER_SECURE`) |
@@ -82,7 +84,7 @@ Antes de desplegar con `NODE_ENV=production`:
 │   └── routes.ts            # Entrada de rutas → delega en composition
 │
 ├── composition/             # Composición (DI manual)
-│   ├── registerRoutes.ts    # Montaje `/user` y `/news` en Express
+│   ├── registerRoutes.ts    # Montaje `/user`, `/news` y `/media` en Express
 │   ├── wireHttpApi.ts       # Reexporta cables por módulo (entrada estable)
 │   ├── wireUserHttpStack.ts # Usuario: repos, JWT, mail, casos de uso, router
 │   └── wireNewsRouter.ts    # Noticias: repo, casos de uso, router
@@ -133,13 +135,14 @@ Flujo típico: **Request** → **Router (presentation)** → **Caso de uso (appl
 |-----------|-----------|
 | `/user`   | CRUD usuario, login, logout, empresas asociadas, recuperación de contraseña, registro público |
 | `/news`   | CRUD de noticias por empresa del usuario autenticado |
+| `/media`  | Subida y eliminación de archivos en Cloudinary (JWT requerido) |
 
 La autenticación usa **JWT** en `Authorization: Bearer <token>`. El middleware rellena `req.user` (`AuthUserPayload`).
 
 ### Documentación OpenAPI
 
 - **`/api-docs`**: Swagger UI (solo si `swaggerEnabled` en configuración; en producción típicamente desactivado).
-- Definición en `swagger.ts` + `documentation/user.ts` y `documentation/news.ts`.
+- Definición en `swagger.ts` + `documentation/user.ts`, `documentation/news.ts` y `documentation/media.ts`.
 
 ## Principios de diseño (resumen)
 

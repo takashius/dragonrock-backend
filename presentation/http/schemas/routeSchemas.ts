@@ -71,6 +71,8 @@ export const addCompanyBodySchema = z.object({
 
 const newsTypeEnum = z.enum(["escenaRock", "culturales", "other"]);
 const newsStatusEnum = z.enum(["draft", "published", "archived"]);
+const mediaResourceTypeEnum = z.enum(["image", "video", "raw", "auto"]);
+const mediaDestroyResourceTypeEnum = z.enum(["image", "video", "raw"]);
 
 export const createNewsBodySchema = z
   .object({
@@ -106,6 +108,18 @@ export const paginateNewsQuerySchema = z.object({
     .optional(),
 });
 
+export const uploadMediaBodySchema = z.object({
+  source: z.string().min(1).max(5_000_000),
+  folder: z.string().min(1).max(200).optional(),
+  publicId: z.string().min(1).max(500).optional(),
+  resourceType: mediaResourceTypeEnum.optional(),
+});
+
+export const deleteMediaBodySchema = z.object({
+  publicId: z.string().min(1).max(500),
+  resourceType: mediaDestroyResourceTypeEnum.optional(),
+});
+
 export type LoginBody = z.infer<typeof loginBodySchema>;
 export type RegisterPublicBody = z.infer<typeof registerPublicBodySchema>;
 export type RecoveryRequestBody = z.infer<typeof recoveryRequestBodySchema>;
@@ -118,3 +132,5 @@ export type AddCompanyBody = z.infer<typeof addCompanyBodySchema>;
 export type CreateNewsBody = z.infer<typeof createNewsBodySchema>;
 export type UpdateNewsBody = z.infer<typeof updateNewsBodySchema>;
 export type PaginateNewsQuery = z.infer<typeof paginateNewsQuerySchema>;
+export type UploadMediaBody = z.infer<typeof uploadMediaBodySchema>;
+export type DeleteMediaBody = z.infer<typeof deleteMediaBodySchema>;

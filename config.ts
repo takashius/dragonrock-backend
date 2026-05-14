@@ -66,6 +66,13 @@ export interface AppConfig {
   mailjetRequired: boolean;
   mailFromEmail: string | undefined;
   mailFromName: string;
+  cloudinary: {
+    cloudName: string | undefined;
+    apiKey: string | undefined;
+    apiSecret: string | undefined;
+    folderName: string;
+  };
+  cloudinaryEnabled: boolean;
   trustProxy: number;
   rateLimitLoginWindowMs: number;
   rateLimitLoginMax: number;
@@ -106,6 +113,17 @@ const config: AppConfig = {
     isProduction || envBool("MAILJET_REQUIRED", false),
   mailFromEmail: process.env.MAIL_FROM_EMAIL?.trim() || undefined,
   mailFromName: process.env.MAIL_FROM_NAME?.trim() || "DragonRock",
+  cloudinary: {
+    cloudName: process.env.CLOUD_NAME?.trim() || undefined,
+    apiKey: process.env.CLOUDINARY_KEY?.trim() || undefined,
+    apiSecret: process.env.CLOUDINARY_SECRET?.trim() || undefined,
+    folderName: process.env.FOLDER_NAME?.trim() || "dragonrock",
+  },
+  cloudinaryEnabled: Boolean(
+    process.env.CLOUD_NAME?.trim() &&
+      process.env.CLOUDINARY_KEY?.trim() &&
+      process.env.CLOUDINARY_SECRET?.trim()
+  ),
   trustProxy: envInt("TRUST_PROXY", 0),
   rateLimitLoginWindowMs: envInt("RATE_LIMIT_LOGIN_WINDOW_MS", 15 * 60 * 1000),
   rateLimitLoginMax: envInt("RATE_LIMIT_LOGIN_MAX", 5),
@@ -164,5 +182,16 @@ export function assertSecurityConfigAtStartup(): void {
         "[fatal] Con Mailjet obligatorio debes definir MAIL_FROM_EMAIL (remitente verificado en Mailjet)."
       );
     }
+  }
+
+  const cloudinaryValues = [
+    config.cloudinary.cloudName,
+    config.cloudinary.apiKey,
+    config.cloudinary.apiSecret,
+  ].filter(Boolean).length;
+  if (cloudinaryValues > 0 && !config.cloudinaryEnabled) {
+    throw new Error(
+      "[fatal] Configuración Cloudinary incompleta: define CLOUD_NAME, CLOUDINARY_KEY y CLOUDINARY_SECRET."
+    );
   }
 }

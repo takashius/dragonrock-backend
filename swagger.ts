@@ -1,5 +1,6 @@
 import user from "./documentation/user.js";
 import news from "./documentation/news.js";
+import media from "./documentation/media.js";
 
 const definition = {
   swagger: "2.0",
@@ -33,6 +34,10 @@ const definition = {
       name: "News",
       description: "Noticias por empresa",
     },
+    {
+      name: "Media",
+      description: "Subida y borrado de archivos en Cloudinary",
+    },
   ],
   consumes: ["application/json"],
   produces: ["application/json"],
@@ -62,10 +67,13 @@ const definition = {
     },
     "/news/paginate": news.paginateNews,
     "/news/{id}": news.newsById,
+    "/media/upload": media.uploadMedia,
+    "/media/destroy": media.destroyMedia,
   },
   definitions: {
     ...user.definitions,
     ...news.definitions,
+    ...media.definitions,
   },
 };
 

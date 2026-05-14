@@ -20,6 +20,7 @@ Documento único con **glosario**, **qué es y por qué usamos la arquitectura h
 | `npm run dev`  | Desarrollo con recarga (`tsx watch index.ts`)   |
 | `npm run build`| Compila TypeScript a `dist/`                    |
 | `npm start`    | Ejecuta `node dist/index.js` (tras `build`)     |
+| `npm run seed:company -- --name "Empresa Base" --email "empresa@local.test" --rif "J-00000000-0" --admin-email "admin@local.test"` | Crea (o reutiliza) empresa base y la asocia al admin (opcional `--create-admin`) |
 | `npm run typecheck` | `tsc --noEmit` (validación de tipos)      |
 | `npm run test`     | Pruebas unitarias (`node:test` + `tsx`)   |
 | `npm run test:watch` | Mismo runner en modo observación      |
@@ -149,8 +150,11 @@ La autenticación usa **JWT** en `Authorization: Bearer <token>`. El middleware 
 
 1. Clonar el repositorio y `npm install`.
 2. Copiar y ajustar `.env` (mínimo `BD_URL`, `JWT_KEY`; recomendado `COMPANY_DEFAULT`, Mailjet si usas correos).
-3. `npm run dev` y abrir `http://localhost:3031` (o el `PORT` configurado).
-4. Antes de commit o PR: `npm run typecheck` y `npm run build`.
+3. Si necesitas bootstrapear la empresa base:
+   `npm run seed:company -- --name "Empresa Base" --email "empresa@local.test" --rif "J-00000000-0" --admin-email "admin@local.test"`
+   (también acepta `--admin-id`; para crear admin automáticamente agrega `--create-admin --admin-password "Admin12345"` y opcional `--admin-name "Administrador"`).
+4. `npm run dev` y abrir `http://localhost:3031` (o el `PORT` configurado).
+5. Antes de commit o PR: `npm run typecheck` y `npm run build`.
 
 ## Licencia
 

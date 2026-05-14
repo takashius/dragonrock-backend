@@ -9,6 +9,7 @@
     "start": "node dist/index.js",
     "prod": "node dist/index.js",
     "dev": "tsx watch index.ts",
+    "seed:company": "tsx scripts/createBaseCompany.ts",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test \"test/**/*.test.ts\"",
     "test:watch": "tsx --watch --test \"test/**/*.test.ts\""

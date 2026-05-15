@@ -51,7 +51,9 @@ export function createNewsRouter(deps: NewsRouterDeps): Router {
     try {
       const q = req.validatedQuery as PaginateNewsQuery;
       const news = await deps.paginateNews.execute({
+        search: q.search,
         filter: q.filter,
+        type: q.type,
         page: q.page,
         companyId: String(req.user!.company),
       });
@@ -131,7 +133,17 @@ export function createNewsRouter(deps: NewsRouterDeps): Router {
         req.params.id,
         String(req.user!.company)
       );
-      sendNewsOutcome(res, req, news);
+      switch (news.status) {
+        case 200:
+          res.status(200).send(`Noticia ${req.params.id} eliminada`);
+          break;
+        case 400:
+          res.status(news.status).send(news.message);
+          break;
+        default:
+          sendNewsOutcome(res, req, news);
+          break;
+      }
     } catch (e: unknown) {
       console.log("[ERROR] -> deleteNews", e);
       res.status(500).send("Unexpected Error");

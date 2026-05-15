@@ -36,14 +36,30 @@ const listNews = {
 const paginateNews = {
   get: {
     tags: ["News"],
-    summary: "Noticias paginadas (filtro y página)",
+    summary: "Noticias paginadas (search/type y página)",
     parameters: [
       authHeader,
+      {
+        name: "search",
+        in: "query",
+        required: false,
+        type: "string",
+        description: "Texto libre para buscar en el título de la noticia",
+      },
       {
         name: "filter",
         in: "query",
         required: false,
         type: "string",
+        description:
+          "Alias legacy de `search` (compatibilidad con versiones previas)",
+      },
+      {
+        name: "type",
+        in: "query",
+        required: false,
+        type: "string",
+        enum: ["escenaRock", "culturales", "other"],
       },
       {
         name: "page",
@@ -81,7 +97,10 @@ const newsById = {
     summary: "Eliminar noticia (soft delete)",
     parameters: [authHeader, mongoIdPathParam],
     responses: {
-      200: { description: "Eliminada" },
+      200: {
+        description: "Noticia eliminada (mensaje texto)",
+        schema: { type: "string" },
+      },
       400: validation400,
       401: { description: "No autorizado" },
       500: { description: "Error inesperado" },

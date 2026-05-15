@@ -104,7 +104,9 @@ export const updateNewsBodySchema = z
   .passthrough();
 
 export const paginateNewsQuerySchema = z.object({
+  search: z.string().max(500).optional(),
   filter: z.string().max(500).optional(),
+  type: newsTypeEnum.optional(),
   page: z
     .string()
     .regex(/^\d+$/)

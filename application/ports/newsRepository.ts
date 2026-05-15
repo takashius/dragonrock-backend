@@ -7,7 +7,9 @@ export interface NewsRepository {
   listFirstForCompany(companyId: string): Promise<NewsOutcome>;
   getDetail(id: string, companyId: string): Promise<NewsOutcome>;
   paginate(params: {
+    search?: string;
     filter: unknown;
+    type?: "escenaRock" | "culturales" | "other";
     page: unknown;
     companyId: string;
   }): Promise<NewsOutcome>;

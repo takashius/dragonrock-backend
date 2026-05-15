@@ -101,6 +101,18 @@ test("DeleteNewsUseCase delega", async () => {
   assert.equal(cid, "c3");
 });
 
+test("DeleteNewsUseCase: controla excepción del repositorio", async () => {
+  const uc = new DeleteNewsUseCase(
+    createRepo({
+      async softDelete() {
+        throw new Error("boom");
+      },
+    })
+  );
+  const out = await uc.execute("id1", "c3");
+  assert.equal(out.status, 500);
+});
+
 test("PaginateNewsUseCase delega", async () => {
   let p: unknown;
   const repo = createRepo({
@@ -111,12 +123,16 @@ test("PaginateNewsUseCase delega", async () => {
   });
   const uc = new PaginateNewsUseCase(repo);
   await uc.execute({
-    filter: "x",
+    search: "x",
+    type: "escenaRock",
+    filter: "legacy",
     page: "2",
     companyId: "c4",
   });
   assert.deepEqual(p, {
-    filter: "x",
+    search: "x",
+    type: "escenaRock",
+    filter: "legacy",
     page: "2",
     companyId: "c4",
   });

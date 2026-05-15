@@ -50,14 +50,18 @@ export class MongooseNewsRepository implements NewsRepository {
   }
 
   async paginate(params: {
+    search?: string;
     filter: unknown;
+    type?: "escenaRock" | "culturales" | "other";
     page: unknown;
     companyId: string;
   }): Promise<NewsOutcome> {
     try {
       const limit = 20;
       const searchText =
-        params.filter === undefined || params.filter === null
+        params.search !== undefined && params.search !== null
+          ? String(params.search).trim()
+          : params.filter === undefined || params.filter === null
           ? ""
           : String(params.filter).trim();
 
@@ -65,6 +69,9 @@ export class MongooseNewsRepository implements NewsRepository {
         active: true,
         company: params.companyId,
       };
+      if (params.type) {
+        query.type = params.type;
+      }
       if (searchText) {
         query.title = {
           $regex: escapeRegex(searchText),

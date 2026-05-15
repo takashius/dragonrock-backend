@@ -91,6 +91,8 @@ const create = {
   post: {
     tags: ["Users"],
     summary: "Crear usuario (autenticado)",
+    description:
+      "Acepta JSON o multipart/form-data. Si envías `photo` como archivo multipart, el backend la sube a Cloudinary y persiste solo la URL.",
     parameters: [
       authBearerHeader,
       {
@@ -109,6 +111,10 @@ const create = {
       },
       400: validation400,
       401: { description: "No autorizado" },
+      503: {
+        description:
+          "Cloudinary no configurado cuando se intenta registrar `photo`",
+      },
       500: { description: "Error al registrar usuario" },
     },
   },
@@ -118,6 +124,8 @@ const update = {
   patch: {
     tags: ["Users"],
     summary: "Actualizar usuario (campos opcionales salvo id)",
+    description:
+      "Acepta JSON o multipart/form-data. Si envías una nueva `photo`, el backend la sube a Cloudinary, guarda la URL y borra la foto previa si existía.",
     parameters: [
       authBearerHeader,
       {
@@ -136,6 +144,10 @@ const update = {
       },
       400: validation400,
       401: { description: "No autorizado" },
+      503: {
+        description:
+          "Cloudinary no configurado cuando se intenta actualizar `photo`",
+      },
       500: { description: "Error inesperado" },
     },
   },
@@ -144,7 +156,7 @@ const update = {
 const list = {
   get: {
     tags: ["Users"],
-    summary: "Listar usuarios",
+    summary: "Listar usuarios (sin datos de empresa ni token)",
     parameters: [authBearerHeader],
     responses: {
       200: {
@@ -542,9 +554,6 @@ const definitions = {
         enum: ["Administrador", "Editor", "Autor"],
       },
       phone: {
-        type: "string",
-      },
-      password: {
         type: "string",
       },
       photo: {

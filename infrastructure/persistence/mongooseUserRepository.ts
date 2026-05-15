@@ -51,7 +51,7 @@ async function findUser(
   }
 }
 
-function stripCompanyFieldsFromUserRow(row: unknown): unknown {
+export function sanitizeUserListRow(row: unknown): unknown {
   if (!row || typeof row !== "object") {
     return row;
   }
@@ -66,6 +66,8 @@ function stripCompanyFieldsFromUserRow(row: unknown): unknown {
 
   delete plain.companys;
   delete plain.company;
+  delete plain.token;
+  delete plain.password;
   return plain;
 }
 
@@ -109,9 +111,7 @@ export class MongooseUserRepository implements UserRepository {
   async getUsers(companyId: string | null): Promise<UserOutcome> {
     try {
       const list = await findUser(companyId);
-      const sanitized = Array.isArray(list)
-        ? list.map(stripCompanyFieldsFromUserRow)
-        : [];
+      const sanitized = Array.isArray(list) ? list.map(sanitizeUserListRow) : [];
       return {
         status: 200,
         message: sanitized,

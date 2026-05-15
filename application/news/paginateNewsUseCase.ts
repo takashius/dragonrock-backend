@@ -9,6 +9,7 @@ export class PaginateNewsUseCase {
     filter: unknown;
     type?: "escenaRock" | "culturales" | "other";
     page: unknown;
+    pageSize?: unknown;
     companyId: string;
   }): Promise<NewsOutcome> {
     return this.news.paginate(params);

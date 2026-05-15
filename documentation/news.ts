@@ -67,6 +67,14 @@ const paginateNews = {
         required: false,
         type: "string",
       },
+      {
+        name: "pageSize",
+        in: "query",
+        required: false,
+        type: "string",
+        description:
+          "Cantidad de ítems por página. Si no se envía, usa el valor por defecto del backend (20).",
+      },
     ],
     responses: {
       200: { description: "Resultado paginado" },

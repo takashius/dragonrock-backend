@@ -11,6 +11,7 @@ export interface NewsRepository {
     filter: unknown;
     type?: "escenaRock" | "culturales" | "other";
     page: unknown;
+    pageSize?: unknown;
     companyId: string;
   }): Promise<NewsOutcome>;
   create(

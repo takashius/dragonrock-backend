@@ -127,6 +127,7 @@ test("PaginateNewsUseCase delega", async () => {
     type: "escenaRock",
     filter: "legacy",
     page: "2",
+    pageSize: "5",
     companyId: "c4",
   });
   assert.deepEqual(p, {
@@ -134,6 +135,7 @@ test("PaginateNewsUseCase delega", async () => {
     type: "escenaRock",
     filter: "legacy",
     page: "2",
+    pageSize: "5",
     companyId: "c4",
   });
 });

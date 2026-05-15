@@ -29,6 +29,7 @@ test("paginateNewsQuerySchema: acepta search y type", () => {
     search: "test",
     type: "escenaRock",
     page: "1",
+    pageSize: "5",
   });
   assert.equal(parsed.success, true);
 });

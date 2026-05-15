@@ -9,7 +9,10 @@ function escapeRegex(str: string): string {
 export class MongooseNewsRepository implements NewsRepository {
   async listFirstForCompany(companyId: string): Promise<NewsOutcome> {
     try {
-      const query: Record<string, unknown> = { active: true, company: companyId };
+      const query: Record<string, unknown> = {
+        active: true,
+        company: companyId,
+      };
       const result = await News.findOne(query);
       return { status: 200, message: result };
     } catch (e) {
@@ -27,15 +30,17 @@ export class MongooseNewsRepository implements NewsRepository {
         _id: id,
         active: true,
         company: companyId,
-      }).populate({
-        path: "created.user",
-        select: ["name", "lastname"],
-        model: "User",
-      }).populate({
-        path: "history.user",
-        select: ["name", "lastname"],
-        model: "User",
-      });
+      })
+        .populate({
+          path: "created.user",
+          select: ["name", "lastname"],
+          model: "User",
+        })
+        .populate({
+          path: "history.user",
+          select: ["name", "lastname"],
+          model: "User",
+        });
       if (!result) {
         return { status: 404, message: "News not found" };
       }
@@ -54,16 +59,18 @@ export class MongooseNewsRepository implements NewsRepository {
     filter: unknown;
     type?: "escenaRock" | "culturales" | "other";
     page: unknown;
+    pageSize?: unknown;
     companyId: string;
   }): Promise<NewsOutcome> {
     try {
-      const limit = 20;
+      const defaultLimit = 20;
+      const maxLimit = 100;
       const searchText =
         params.search !== undefined && params.search !== null
           ? String(params.search).trim()
           : params.filter === undefined || params.filter === null
-          ? ""
-          : String(params.filter).trim();
+            ? ""
+            : String(params.filter).trim();
 
       const query: Record<string, unknown> = {
         active: true,
@@ -80,6 +87,14 @@ export class MongooseNewsRepository implements NewsRepository {
       }
 
       const pageNum = Math.max(1, parseInt(String(params.page), 10) || 1);
+      const requestedLimit =
+        params.pageSize === undefined || params.pageSize === null
+          ? defaultLimit
+          : parseInt(String(params.pageSize), 10);
+      const limit =
+        Number.isFinite(requestedLimit) && requestedLimit > 0
+          ? Math.min(requestedLimit, maxLimit)
+          : defaultLimit;
 
       const select =
         "id title description content type status image tags created history";
@@ -113,6 +128,7 @@ export class MongooseNewsRepository implements NewsRepository {
           totalNews,
           totalPages,
           currentPage: pageNum,
+          pageSize: limit,
           next: next(),
         },
       };
@@ -125,7 +141,7 @@ export class MongooseNewsRepository implements NewsRepository {
   async create(
     data: Record<string, unknown>,
     userId: string,
-    companyId: string
+    companyId: string,
   ): Promise<NewsOutcome> {
     try {
       const newsData = {
@@ -151,10 +167,13 @@ export class MongooseNewsRepository implements NewsRepository {
   async update(
     data: { id: string } & Record<string, unknown>,
     companyId: string,
-    editorUserId: string
+    editorUserId: string,
   ): Promise<NewsOutcome> {
     try {
-      const foundNews = await News.findOne({ _id: data.id, company: companyId });
+      const foundNews = await News.findOne({
+        _id: data.id,
+        company: companyId,
+      });
       if (!foundNews) {
         return { status: 400, message: "News not found" };
       }

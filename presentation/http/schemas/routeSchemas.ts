@@ -112,6 +112,11 @@ export const paginateNewsQuerySchema = z.object({
     .regex(/^\d+$/)
     .max(10)
     .optional(),
+  pageSize: z
+    .string()
+    .regex(/^\d+$/)
+    .max(3)
+    .optional(),
 });
 
 export const uploadMediaBodySchema = z.object({

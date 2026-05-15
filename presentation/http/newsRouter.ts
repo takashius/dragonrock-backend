@@ -55,6 +55,7 @@ export function createNewsRouter(deps: NewsRouterDeps): Router {
         filter: q.filter,
         type: q.type,
         page: q.page,
+        pageSize: q.pageSize,
         companyId: String(req.user!.company),
       });
       sendNewsOutcome(res, req, news);

@@ -46,6 +46,8 @@ const login = {
   post: {
     tags: ["Users"],
     summary: "Iniciar sesión",
+    description:
+      "Devuelve datos del usuario autenticado, incluyendo el `role` vigente (Administrador, Editor o Autor).",
     parameters: [
       {
         name: "body",
@@ -593,6 +595,7 @@ const definitions = {
     },
   },
   ResponseUserLoginData: {
+    required: ["_id", "name", "email", "token", "company", "role"],
     properties: {
       _id: { type: "string", pattern: "^[a-fA-F0-9]{24}$" },
       name: { type: "string" },

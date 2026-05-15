@@ -333,7 +333,7 @@ export class MongooseUserRepository implements UserRepository {
         _id,
         name,
         lastname,
-        role,
+        role: role ?? "Autor",
         phone,
         photo,
         email,

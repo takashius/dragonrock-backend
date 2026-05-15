@@ -55,17 +55,30 @@ test("GetUserUseCase: con id", async () => {
 test("LoginUserUseCase", async () => {
   let e = "";
   let p = "";
-  await new LoginUserUseCase(
+  const out = await new LoginUserUseCase(
     repo({
       async loginUser(mail, pass) {
         e = mail;
         p = pass;
-        return ok;
+        return {
+          status: 200,
+          message: {
+            _id: "u1",
+            name: "Juan",
+            role: "Editor",
+            token: "tok",
+            company: "c1",
+          },
+        };
       },
     })
   ).execute({ email: "a@b.c", password: "secret" });
   assert.equal(e, "a@b.c");
   assert.equal(p, "secret");
+  assert.equal(
+    (out.message as { role?: string }).role,
+    "Editor"
+  );
 });
 
 test("AddUserUseCase", async () => {

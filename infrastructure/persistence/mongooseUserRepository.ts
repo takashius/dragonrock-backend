@@ -51,6 +51,24 @@ async function findUser(
   }
 }
 
+function stripCompanyFieldsFromUserRow(row: unknown): unknown {
+  if (!row || typeof row !== "object") {
+    return row;
+  }
+
+  const withToObject = row as {
+    toObject?: () => Record<string, unknown>;
+  };
+  const plain =
+    typeof withToObject.toObject === "function"
+      ? withToObject.toObject()
+      : { ...(row as Record<string, unknown>) };
+
+  delete plain.companys;
+  delete plain.company;
+  return plain;
+}
+
 export class MongooseUserRepository implements UserRepository {
   async findActiveUserWithToken(
     userId: string,
@@ -91,9 +109,12 @@ export class MongooseUserRepository implements UserRepository {
   async getUsers(companyId: string | null): Promise<UserOutcome> {
     try {
       const list = await findUser(companyId);
+      const sanitized = Array.isArray(list)
+        ? list.map(stripCompanyFieldsFromUserRow)
+        : [];
       return {
         status: 200,
-        message: list,
+        message: sanitized,
       };
     } catch (e) {
       return {

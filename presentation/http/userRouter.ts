@@ -21,6 +21,7 @@ import {
   loginRateLimiter,
   sensitivePublicRateLimiter,
 } from "./rateLimiters.js";
+import { parseUserMultipartPhoto } from "./parseUserMultipartPhoto.js";
 import { validateBody, validateParams } from "./validateRequest.js";
 import {
   addCompanyBodySchema,
@@ -178,7 +179,12 @@ export function createUserRouter(deps: UserRouterDeps): Router {
       });
   });
 
-  router.post("/", auth(), validateBody(addUserBodySchema), function (req, res) {
+  router.post(
+    "/",
+    auth(),
+    parseUserMultipartPhoto,
+    validateBody(addUserBodySchema),
+    function (req, res) {
     deps.addUser
       .execute(req.body as AddUserBody)
       .then((user) => {
@@ -195,7 +201,8 @@ export function createUserRouter(deps: UserRouterDeps): Router {
         console.log(e);
         res.status(500).send("Unexpected Error");
       });
-  });
+  }
+  );
 
   router.post(
     "/register",
@@ -296,7 +303,12 @@ export function createUserRouter(deps: UserRouterDeps): Router {
   }
   );
 
-  router.patch("/", auth(), validateBody(updateUserBodySchema), function (req, res) {
+  router.patch(
+    "/",
+    auth(),
+    parseUserMultipartPhoto,
+    validateBody(updateUserBodySchema),
+    function (req, res) {
     deps.updateUser
       .execute(req.body as UpdateUserBody)
       .then((user) => {
@@ -316,7 +328,8 @@ export function createUserRouter(deps: UserRouterDeps): Router {
         console.log(e);
         res.status(500).send("Unexpected Error");
       });
-  });
+  }
+  );
 
   router.patch(
     "/select_company",

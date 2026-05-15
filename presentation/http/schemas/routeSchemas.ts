@@ -46,7 +46,7 @@ export const addUserBodySchema = z
     password: z.string().min(8).max(500),
     role: userRoleEnum.optional(),
     phone: z.string().max(50).optional(),
-    photo: z.string().max(5_000_000).optional(),
+    photo: z.string().max(10_000_000).optional(),
   })
   .passthrough();
 
@@ -55,7 +55,7 @@ export const updateUserBodySchema = z.object({
   name: z.string().min(1).max(200).optional(),
   lastname: z.string().min(1).max(200).optional(),
   role: userRoleEnum.optional(),
-  photo: z.string().max(5_000_000).optional(),
+  photo: z.string().max(10_000_000).optional(),
   phone: z.string().max(50).optional(),
   password: z.string().min(8).max(500).optional(),
 });

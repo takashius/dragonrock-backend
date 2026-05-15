@@ -4,6 +4,8 @@ import { MongooseNewsRepository } from "../infrastructure/persistence/mongooseNe
 import { CloudinaryMediaStorage } from "../infrastructure/media/cloudinaryMediaStorage.js";
 import { ListNewsUseCase } from "../application/news/listNewsUseCase.js";
 import { GetNewsDetailUseCase } from "../application/news/getNewsDetailUseCase.js";
+import { ListPublishedNewsUseCase } from "../application/news/listPublishedNewsUseCase.js";
+import { GetPublishedNewsDetailUseCase } from "../application/news/getPublishedNewsDetailUseCase.js";
 import { PaginateNewsUseCase } from "../application/news/paginateNewsUseCase.js";
 import { CreateNewsUseCase } from "../application/news/createNewsUseCase.js";
 import { UpdateNewsUseCase } from "../application/news/updateNewsUseCase.js";
@@ -28,6 +30,8 @@ export function wireNewsRouter(auth: AuthMiddlewareFactory): Router {
     auth,
     listNews: new ListNewsUseCase(newsRepository),
     getNewsDetail: new GetNewsDetailUseCase(newsRepository),
+    listPublishedNews: new ListPublishedNewsUseCase(newsRepository),
+    getPublishedNewsDetail: new GetPublishedNewsDetailUseCase(newsRepository),
     paginateNews: new PaginateNewsUseCase(newsRepository),
     createNews: new CreateNewsUseCase(newsRepository, mediaStorage),
     updateNews: new UpdateNewsUseCase(newsRepository, mediaStorage),

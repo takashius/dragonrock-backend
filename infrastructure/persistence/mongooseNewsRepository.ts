@@ -7,6 +7,59 @@ function escapeRegex(str: string): string {
 }
 
 export class MongooseNewsRepository implements NewsRepository {
+  async listPublished(): Promise<NewsOutcome> {
+    try {
+      const result = await News.find({
+        active: true,
+        status: "published",
+      })
+        .select("id title description content type status image tags created")
+        .populate({
+          path: "created.user",
+          select: ["name", "lastname"],
+          model: "User",
+        })
+        .sort({ "created.date": "desc" });
+      return { status: 200, message: result };
+    } catch (e) {
+      console.log("[ERROR] -> listPublishedNews", e);
+      return { status: 400, message: "Results error", detail: e };
+    }
+  }
+
+  async getPublishedDetail(id: string): Promise<NewsOutcome> {
+    try {
+      if (!id?.trim()) {
+        return { status: 400, message: "News id is required" };
+      }
+      const result = await News.findOne({
+        _id: id,
+        active: true,
+        status: "published",
+      })
+        .populate({
+          path: "created.user",
+          select: ["name", "lastname"],
+          model: "User",
+        })
+        .populate({
+          path: "history.user",
+          select: ["name", "lastname"],
+          model: "User",
+        });
+      if (!result) {
+        return { status: 404, message: "News not found or not published" };
+      }
+      return { status: 200, message: result };
+    } catch (e: unknown) {
+      if (e instanceof Error && e.name === "CastError") {
+        return { status: 400, message: "Invalid news id" };
+      }
+      console.log("[ERROR] -> getPublishedNewsDetail", e);
+      return { status: 400, message: "Results error", detail: e };
+    }
+  }
+
   async listFirstForCompany(companyId: string): Promise<NewsOutcome> {
     try {
       const query: Record<string, unknown> = {

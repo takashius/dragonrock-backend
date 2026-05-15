@@ -33,6 +33,18 @@ const listNews = {
   },
 };
 
+const publicListNews = {
+  get: {
+    tags: ["News"],
+    summary: "Listado público de noticias publicadas",
+    description: "Retorna solo noticias con status `published` y activas.",
+    responses: {
+      200: { description: "Lista pública de noticias publicadas" },
+      500: { description: "Error inesperado" },
+    },
+  },
+};
+
 const paginateNews = {
   get: {
     tags: ["News"],
@@ -111,6 +123,22 @@ const newsById = {
       },
       400: validation400,
       401: { description: "No autorizado" },
+      500: { description: "Error inesperado" },
+    },
+  },
+};
+
+const publicNewsById = {
+  get: {
+    tags: ["News"],
+    summary: "Detalle público de noticia publicada",
+    description:
+      "Solo retorna la noticia si está activa y en status `published`.",
+    parameters: [mongoIdPathParam],
+    responses: {
+      200: { description: "Detalle de noticia publicada" },
+      400: validation400,
+      404: { description: "Noticia no encontrada o no publicada" },
       500: { description: "Error inesperado" },
     },
   },
@@ -249,8 +277,10 @@ const definitions = {
 
 export default {
   listNews,
+  publicListNews,
   paginateNews,
   newsById,
+  publicNewsById,
   createNews,
   updateNews,
   definitions,

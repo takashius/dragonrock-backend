@@ -4,6 +4,8 @@ import type { NewsRepository } from "../../../application/ports/newsRepository.j
 import type { NewsOutcome } from "../../../application/types/newsOutcome.js";
 import { ListNewsUseCase } from "../../../application/news/listNewsUseCase.js";
 import { GetNewsDetailUseCase } from "../../../application/news/getNewsDetailUseCase.js";
+import { ListPublishedNewsUseCase } from "../../../application/news/listPublishedNewsUseCase.js";
+import { GetPublishedNewsDetailUseCase } from "../../../application/news/getPublishedNewsDetailUseCase.js";
 import { CreateNewsUseCase } from "../../../application/news/createNewsUseCase.js";
 import { UpdateNewsUseCase } from "../../../application/news/updateNewsUseCase.js";
 import { DeleteNewsUseCase } from "../../../application/news/deleteNewsUseCase.js";
@@ -13,6 +15,8 @@ const ok: NewsOutcome = { status: 200, message: [] };
 
 function createRepo(overrides: Partial<NewsRepository> = {}): NewsRepository {
   return {
+    listPublished: async () => ok,
+    getPublishedDetail: async () => ok,
     listFirstForCompany: async () => ok,
     getDetail: async () => ok,
     create: async () => ok,
@@ -51,6 +55,33 @@ test("GetNewsDetailUseCase delega con id y empresa", async () => {
   await uc.execute("nid", "cid");
   assert.equal(id, "nid");
   assert.equal(company, "cid");
+});
+
+test("ListPublishedNewsUseCase delega en el repositorio", async () => {
+  let called = false;
+  const repo = createRepo({
+    async listPublished() {
+      called = true;
+      return ok;
+    },
+  });
+  const uc = new ListPublishedNewsUseCase(repo);
+  const r = await uc.execute();
+  assert.equal(called, true);
+  assert.equal(r.status, 200);
+});
+
+test("GetPublishedNewsDetailUseCase delega con id", async () => {
+  let id = "";
+  const repo = createRepo({
+    async getPublishedDetail(newsId: string) {
+      id = newsId;
+      return ok;
+    },
+  });
+  const uc = new GetPublishedNewsDetailUseCase(repo);
+  await uc.execute("nid-pub");
+  assert.equal(id, "nid-pub");
 });
 
 test("CreateNewsUseCase delega", async () => {

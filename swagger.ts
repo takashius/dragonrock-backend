@@ -60,6 +60,8 @@ const definition = {
       patch: news.updateNews.patch,
     },
     "/news/paginate": news.paginateNews,
+    "/news/public": news.publicListNews,
+    "/news/public/{id}": news.publicNewsById,
     "/news/{id}": news.newsById,
     "/media/upload": media.uploadMedia,
     "/media/destroy": media.destroyMedia,

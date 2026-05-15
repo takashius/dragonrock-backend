@@ -1,6 +1,8 @@
 import express, { type Router } from "express";
 import type { ListNewsUseCase } from "../../application/news/listNewsUseCase.js";
 import type { GetNewsDetailUseCase } from "../../application/news/getNewsDetailUseCase.js";
+import type { ListPublishedNewsUseCase } from "../../application/news/listPublishedNewsUseCase.js";
+import type { GetPublishedNewsDetailUseCase } from "../../application/news/getPublishedNewsDetailUseCase.js";
 import type { PaginateNewsUseCase } from "../../application/news/paginateNewsUseCase.js";
 import type { CreateNewsUseCase } from "../../application/news/createNewsUseCase.js";
 import type { UpdateNewsUseCase } from "../../application/news/updateNewsUseCase.js";
@@ -23,6 +25,8 @@ export type NewsRouterDeps = {
   auth: AuthMiddlewareFactory;
   listNews: ListNewsUseCase;
   getNewsDetail: GetNewsDetailUseCase;
+  listPublishedNews: ListPublishedNewsUseCase;
+  getPublishedNewsDetail: GetPublishedNewsDetailUseCase;
   paginateNews: PaginateNewsUseCase;
   createNews: CreateNewsUseCase;
   updateNews: UpdateNewsUseCase;
@@ -42,6 +46,30 @@ export function createNewsRouter(deps: NewsRouterDeps): Router {
       res.status(500).send("Unexpected Error");
     }
   });
+
+  router.get("/public", async (req, res) => {
+    try {
+      const news = await deps.listPublishedNews.execute();
+      sendNewsOutcome(res, req, news);
+    } catch (e: unknown) {
+      console.log("[ERROR] -> listPublishedNews", e);
+      res.status(500).send("Unexpected Error");
+    }
+  });
+
+  router.get(
+    "/public/:id",
+    validateParams(mongoIdParamSchema),
+    async (req, res) => {
+      try {
+        const news = await deps.getPublishedNewsDetail.execute(req.params.id);
+        sendNewsOutcome(res, req, news);
+      } catch (e: unknown) {
+        console.log("[ERROR] -> getPublishedNewsDetail", e);
+        res.status(500).send("Unexpected Error");
+      }
+    }
+  );
 
   router.get(
     "/paginate",

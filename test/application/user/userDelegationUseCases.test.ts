@@ -103,10 +103,11 @@ test("UpdateUserUseCase: delega", async () => {
     repo({
       async updateUser(u) {
         assert.equal(u.id, "1");
+        assert.equal(u.role, "Editor");
         return ok;
       },
     })
-  ).execute({ id: "1", name: "n" });
+  ).execute({ id: "1", name: "n", role: "Editor" });
 });
 
 test("LogoutUserUseCase", async () => {

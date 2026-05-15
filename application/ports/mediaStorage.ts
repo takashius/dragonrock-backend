@@ -18,4 +18,12 @@ export interface MediaStorage {
     publicId: string;
     result: string;
   }>;
+
+  destroyByUrl?(url: string): Promise<
+    | {
+        publicId: string;
+        result: string;
+      }
+    | null
+  >;
 }

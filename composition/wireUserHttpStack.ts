@@ -4,6 +4,7 @@ import { MongooseUserRepository } from "../infrastructure/persistence/mongooseUs
 import { JwtAccessTokenVerifier } from "../infrastructure/auth/jwtAccessTokenVerifier.js";
 import { MailjetMailSender } from "../infrastructure/email/mailjetMailSender.js";
 import { MongooseCompanyLookup } from "../infrastructure/company/mongooseCompanyLookup.js";
+import { CloudinaryMediaStorage } from "../infrastructure/media/cloudinaryMediaStorage.js";
 import {
   createAuthMiddleware,
   type AuthMiddlewareFactory,
@@ -52,14 +53,22 @@ export function wireUserHttpStack(): {
   const mailSender = new MailjetMailSender();
   const companyLookup = new MongooseCompanyLookup();
   const defaultCompanyId = config.companyDefault ?? "";
+  const mediaStorage = config.cloudinaryEnabled
+    ? new CloudinaryMediaStorage({
+        cloudName: config.cloudinary.cloudName!,
+        apiKey: config.cloudinary.apiKey!,
+        apiSecret: config.cloudinary.apiSecret!,
+        defaultFolder: config.cloudinary.folderName,
+      })
+    : undefined;
 
   const userRouter = createUserRouter({
     auth,
     listUsers: new ListUsersUseCase(userRepository),
     getUser: new GetUserUseCase(userRepository),
-    addUser: new AddUserUseCase(userRepository),
+    addUser: new AddUserUseCase(userRepository, mediaStorage),
     deleteUser: new DeleteUserUseCase(userRepository),
-    updateUser: new UpdateUserUseCase(userRepository),
+    updateUser: new UpdateUserUseCase(userRepository, mediaStorage),
     loginUser: new LoginUserUseCase(userRepository),
     logoutUser: new LogoutUserUseCase(userRepository),
     logoutAll: new LogoutAllUseCase(userRepository),

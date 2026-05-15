@@ -423,8 +423,13 @@ const definitions = {
       lastname: { type: "string", minLength: 1 },
       email: { type: "string", format: "email" },
       password: { type: "string", minLength: 8, description: "Mínimo 8 caracteres" },
+      role: { type: "string", enum: ["Administrador", "Editor", "Autor"] },
       phone: { type: "string" },
-      photo: { type: "string" },
+      photo: {
+        type: "string",
+        description:
+          "Imagen de perfil de entrada (data URI o URL remota). Se sube a Cloudinary y se guarda la URL final.",
+      },
     },
     description:
       "Campos adicionales permitidos (p. ej. datos Mongoose) se documentan como passthrough en el servidor.",
@@ -440,7 +445,12 @@ const definitions = {
       },
       name: { type: "string" },
       lastname: { type: "string" },
-      photo: { type: "string" },
+      role: { type: "string", enum: ["Administrador", "Editor", "Autor"] },
+      photo: {
+        type: "string",
+        description:
+          "Nueva imagen de perfil (data URI o URL remota). Reemplaza la anterior en Cloudinary.",
+      },
       phone: { type: "string" },
       password: { type: "string", minLength: 8 },
     },
@@ -505,6 +515,7 @@ const definitions = {
       password: { type: "string", minLength: 8, maxLength: 500 },
       companyName: { type: "string", maxLength: 200 },
       docId: { type: "string", maxLength: 100, description: "RIF u otro documento de empresa" },
+      phone: { type: "string", maxLength: 50 },
     },
   },
   User: {
@@ -526,20 +537,36 @@ const definitions = {
       lastname: {
         type: "string",
       },
+      role: {
+        type: "string",
+        enum: ["Administrador", "Editor", "Autor"],
+      },
+      phone: {
+        type: "string",
+      },
       password: {
         type: "string",
+      },
+      photo: {
+        type: "string",
+        description: "URL final de la foto de perfil almacenada en Cloudinary",
       },
     },
   },
   Users: {
     type: "array",
-    $ref: "#/definitions/User",
+    items: {
+      $ref: "#/definitions/User",
+    },
   },
   ResponseUserData: {
     properties: {
       id: { type: "string", pattern: "^[a-fA-F0-9]{24}$" },
       name: { type: "string" },
       lastname: { type: "string" },
+      role: { type: "string", enum: ["Administrador", "Editor", "Autor"] },
+      phone: { type: "string" },
+      photo: { type: "string" },
       email: { type: "string", format: "email" },
       date: { type: "string", format: "date" },
     },
@@ -561,9 +588,13 @@ const definitions = {
       _id: { type: "string", pattern: "^[a-fA-F0-9]{24}$" },
       name: { type: "string" },
       lastname: { type: "string" },
+      role: { type: "string", enum: ["Administrador", "Editor", "Autor"] },
+      phone: { type: "string" },
+      photo: { type: "string" },
       email: { type: "string", format: "email" },
       date: { type: "string", format: "date" },
       token: { type: "string" },
+      company: { type: "string", pattern: "^[a-fA-F0-9]{24}$" },
     },
   },
 };

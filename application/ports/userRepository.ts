@@ -19,11 +19,13 @@ export interface UserRepository {
     password: string;
     companyName: string;
     docId: string;
+    phone?: string;
   }): Promise<UserOutcome>;
   updateUser(user: {
     id: string;
     name?: string;
     lastname?: string;
+    role?: "Administrador" | "Editor" | "Autor";
     photo?: string;
     phone?: string;
     password?: string;

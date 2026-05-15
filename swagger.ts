@@ -17,13 +17,7 @@ const definition = {
     },
   },
   host: "localhost:3031",
-
-  servers: [
-    {
-      url: "http://localhost:3031",
-      description: "Servidor local",
-    },
-  ],
+  schemes: ["http"],
 
   tags: [
     {

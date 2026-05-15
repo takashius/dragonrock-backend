@@ -3,6 +3,7 @@ import { z } from "zod";
 const objectIdString = z
   .string()
   .regex(/^[a-fA-F0-9]{24}$/, "id inválido");
+const userRoleEnum = z.enum(["Administrador", "Editor", "Autor"]);
 
 /** ObjectId de MongoDB (24 hex). */
 export const mongoIdParamSchema = z.object({
@@ -24,6 +25,7 @@ export const registerPublicBodySchema = z.object({
   password: z.string().min(8).max(500),
   companyName: z.string().min(1).max(200),
   docId: z.string().min(1).max(100),
+  phone: z.string().max(50).optional(),
 });
 
 export const recoveryRequestBodySchema = z.object({
@@ -42,8 +44,9 @@ export const addUserBodySchema = z
     lastname: z.string().min(1).max(200),
     email: z.string().email(),
     password: z.string().min(8).max(500),
+    role: userRoleEnum.optional(),
     phone: z.string().max(50).optional(),
-    photo: z.string().max(2000).optional(),
+    photo: z.string().max(5_000_000).optional(),
   })
   .passthrough();
 
@@ -51,7 +54,8 @@ export const updateUserBodySchema = z.object({
   id: objectIdString,
   name: z.string().min(1).max(200).optional(),
   lastname: z.string().min(1).max(200).optional(),
-  photo: z.string().max(2000).optional(),
+  role: userRoleEnum.optional(),
+  photo: z.string().max(5_000_000).optional(),
   phone: z.string().max(50).optional(),
   password: z.string().min(8).max(500).optional(),
 });

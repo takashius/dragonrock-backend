@@ -19,6 +19,7 @@ export class RegisterUserPublicUseCase {
     password: string;
     companyName: string;
     docId: string;
+    phone?: string;
   }): Promise<UserOutcome> {
     try {
       if (!data.email) {

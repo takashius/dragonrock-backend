@@ -24,7 +24,7 @@ async function findUser(
       };
     }
 
-    const select = "id name lastname photo phone date email token companys";
+    const select = "id name lastname role photo phone date email token companys";
     const populateCompany = {
       path: "companys.company",
       model: "Company",
@@ -108,11 +108,21 @@ export class MongooseUserRepository implements UserRepository {
     try {
       const myUser = new User(user);
       await myUser.save();
-      const { _id, name, lastname, photo, email, date } = myUser;
+      const { _id, name, lastname, role, photo, phone, email, date } = myUser;
       const token = await (
         myUser as typeof myUser & { generateAuthToken(): Promise<string> }
       ).generateAuthToken();
-      const message = { _id, name, lastname, photo, email, date, token };
+      const message = {
+        _id,
+        name,
+        lastname,
+        role,
+        photo,
+        phone,
+        email,
+        date,
+        token,
+      };
       return { status: 201, message };
     } catch (e) {
       return {
@@ -129,10 +139,11 @@ export class MongooseUserRepository implements UserRepository {
     password: string;
     companyName: string;
     docId: string;
+    phone?: string;
   }): Promise<UserOutcome> {
     try {
-      const { name, email, password, companyName, docId } = request;
-      const myUser = new User({ name, email, password });
+      const { name, email, password, companyName, docId, phone } = request;
+      const myUser = new User({ name, email, password, phone });
       await myUser.save();
       const adminUser = await User.findOne({ _id: config.userAdmin });
       if (!adminUser) {
@@ -168,6 +179,8 @@ export class MongooseUserRepository implements UserRepository {
       const response = {
         _id: myUser._id,
         name,
+        role: myUser.role,
+        phone: myUser.phone,
         docId,
         email,
         date: myUser.date,
@@ -188,6 +201,7 @@ export class MongooseUserRepository implements UserRepository {
     id: string;
     name?: string;
     lastname?: string;
+    role?: "Administrador" | "Editor" | "Autor";
     photo?: string;
     phone?: string;
     password?: string;
@@ -208,6 +222,9 @@ export class MongooseUserRepository implements UserRepository {
       if (user.lastname) {
         foundUser.lastname = user.lastname;
       }
+      if (user.role) {
+        foundUser.role = user.role;
+      }
       if (user.photo) {
         foundUser.photo = user.photo;
       }
@@ -219,8 +236,19 @@ export class MongooseUserRepository implements UserRepository {
       }
 
       await foundUser.save();
-      const { _id, name, lastname, photo, email, date, active } = foundUser;
-      const message = { _id, name, lastname, photo, email, date, active };
+      const { _id, name, lastname, role, photo, phone, email, date, active } =
+        foundUser;
+      const message = {
+        _id,
+        name,
+        lastname,
+        role,
+        photo,
+        phone,
+        email,
+        date,
+        active,
+      };
       return { status: 200, message };
     } catch (e) {
       return {
@@ -258,6 +286,8 @@ export class MongooseUserRepository implements UserRepository {
               _id: Types.ObjectId;
               name: string;
               lastname?: string;
+              role?: "Administrador" | "Editor" | "Autor";
+              phone?: string;
               photo?: string;
               email: string;
               date: Date;
@@ -265,7 +295,8 @@ export class MongooseUserRepository implements UserRepository {
           >;
         }
       ).findByCredentials(mail, pass);
-      const { _id, name, lastname, photo, email, date, companys } = user;
+      const { _id, name, lastname, role, phone, photo, email, date, companys } =
+        user;
       const selectedCompany = companys.find(
         (company: { selected: boolean }) => company.selected === true
       );
@@ -281,6 +312,8 @@ export class MongooseUserRepository implements UserRepository {
         _id,
         name,
         lastname,
+        role,
+        phone,
         photo,
         email,
         date,

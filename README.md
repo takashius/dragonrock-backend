@@ -134,7 +134,7 @@ Flujo típico: **Request** → **Router (presentation)** → **Caso de uso (appl
 | Prefijo   | Contenido |
 |-----------|-----------|
 | `/user`   | CRUD usuario, login, logout, empresas asociadas, recuperación de contraseña, registro público |
-| `/news`   | CRUD de noticias por empresa del usuario autenticado |
+| `/news`   | CRUD de noticias por empresa del usuario autenticado, imagen en Cloudinary y historial de ediciones (usuario/fecha) |
 | `/media`  | Subida y eliminación de archivos en Cloudinary (JWT requerido) |
 
 La autenticación usa **JWT** en `Authorization: Bearer <token>`. El middleware rellena `req.user` (`AuthUserPayload`).

@@ -85,7 +85,7 @@ export const createNewsBodySchema = z
     content: z.string().max(100000).optional(),
     type: newsTypeEnum,
     status: newsStatusEnum,
-    image: z.string().max(2000).optional(),
+    image: z.string().max(10_000_000).optional(),
     tags: z.array(z.string().max(100)).max(50).optional(),
   })
   .passthrough();
@@ -98,7 +98,7 @@ export const updateNewsBodySchema = z
     content: z.string().max(100000).optional(),
     type: newsTypeEnum.optional(),
     status: newsStatusEnum.optional(),
-    image: z.string().max(2000).optional(),
+    image: z.string().max(10_000_000).optional(),
     tags: z.array(z.string().max(100)).max(50).optional(),
   })
   .passthrough();

@@ -31,6 +31,10 @@ export class MongooseNewsRepository implements NewsRepository {
         path: "created.user",
         select: ["name", "lastname"],
         model: "User",
+      }).populate({
+        path: "history.user",
+        select: ["name", "lastname"],
+        model: "User",
       });
       if (!result) {
         return { status: 404, message: "News not found" };
@@ -71,11 +75,16 @@ export class MongooseNewsRepository implements NewsRepository {
       const pageNum = Math.max(1, parseInt(String(params.page), 10) || 1);
 
       const select =
-        "id title description content type status image tags created";
+        "id title description content type status image tags created history";
       const result = await News.find(query)
         .select(select)
         .populate({
           path: "created.user",
+          select: ["name", "lastname"],
+          model: "User",
+        })
+        .populate({
+          path: "history.user",
           select: ["name", "lastname"],
           model: "User",
         })
@@ -134,7 +143,8 @@ export class MongooseNewsRepository implements NewsRepository {
 
   async update(
     data: { id: string } & Record<string, unknown>,
-    companyId: string
+    companyId: string,
+    editorUserId: string
   ): Promise<NewsOutcome> {
     try {
       const foundNews = await News.findOne({ _id: data.id, company: companyId });
@@ -162,6 +172,10 @@ export class MongooseNewsRepository implements NewsRepository {
       if (data.tags) {
         foundNews.tags = data.tags as string[];
       }
+      foundNews.history = foundNews.history.concat({
+        user: editorUserId as unknown as import("mongoose").Types.ObjectId,
+        date: new Date(),
+      });
       await foundNews.save();
       return { status: 200, message: foundNews };
     } catch (e) {

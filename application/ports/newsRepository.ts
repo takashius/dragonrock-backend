@@ -18,7 +18,8 @@ export interface NewsRepository {
   ): Promise<NewsOutcome>;
   update(
     data: { id: string } & Record<string, unknown>,
-    companyId: string
+    companyId: string,
+    editorUserId: string
   ): Promise<NewsOutcome>;
   softDelete(id: string, companyId: string): Promise<NewsOutcome>;
 }

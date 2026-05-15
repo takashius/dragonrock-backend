@@ -71,15 +71,18 @@ test("CreateNewsUseCase delega", async () => {
 
 test("UpdateNewsUseCase delega", async () => {
   let cid = "";
+  let uid = "";
   const repo = createRepo({
-    async update(data, companyId) {
+    async update(data, companyId, editorUserId) {
       cid = companyId;
+      uid = editorUserId;
       return ok;
     },
   });
   const uc = new UpdateNewsUseCase(repo);
-  await uc.execute({ id: "1" } as { id: string }, "c2");
+  await uc.execute({ id: "1" } as { id: string }, "c2", "u2");
   assert.equal(cid, "c2");
+  assert.equal(uid, "u2");
 });
 
 test("DeleteNewsUseCase delega", async () => {

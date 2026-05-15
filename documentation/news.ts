@@ -65,6 +65,8 @@ const newsById = {
   get: {
     tags: ["News"],
     summary: "Detalle de una noticia",
+    description:
+      "Incluye metadatos de creación y `history` de ediciones (quién editó y cuándo).",
     parameters: [authHeader, mongoIdPathParam],
     responses: {
       200: { description: "Noticia" },
@@ -91,6 +93,8 @@ const createNews = {
   post: {
     tags: ["News"],
     summary: "Crear noticia",
+    description:
+      "Acepta JSON o multipart/form-data. Si envías `image` como archivo, se sube a Cloudinary y se guarda la URL en la noticia.",
     parameters: [
       authHeader,
       {
@@ -104,6 +108,10 @@ const createNews = {
       200: { description: "Noticia creada (cuerpo = documento guardado)" },
       400: validation400,
       401: { description: "No autorizado" },
+      503: {
+        description:
+          "Cloudinary no configurado cuando se intenta registrar `image`",
+      },
       500: { description: "Error inesperado" },
     },
   },
@@ -113,6 +121,8 @@ const updateNews = {
   patch: {
     tags: ["News"],
     summary: "Actualizar noticia",
+    description:
+      "Acepta JSON o multipart/form-data. Si envías una nueva `image`, se sube a Cloudinary, se guarda la nueva URL y se intenta borrar la imagen previa.",
     parameters: [
       authHeader,
       {
@@ -126,6 +136,10 @@ const updateNews = {
       200: { description: "Actualizada" },
       400: validation400,
       401: { description: "No autorizado" },
+      503: {
+        description:
+          "Cloudinary no configurado cuando se intenta actualizar `image`",
+      },
       500: { description: "Error inesperado" },
     },
   },
@@ -147,7 +161,11 @@ const definitions = {
         type: "string",
         enum: ["draft", "published", "archived"],
       },
-      image: { type: "string" },
+      image: {
+        type: "string",
+        description:
+          "Imagen de entrada (data URI o URL remota). Se sube a Cloudinary y se guarda la URL final.",
+      },
       tags: {
         type: "array",
         items: { type: "string" },
@@ -174,10 +192,29 @@ const definitions = {
         type: "string",
         enum: ["draft", "published", "archived"],
       },
-      image: { type: "string" },
+      image: {
+        type: "string",
+        description:
+          "Nueva imagen (data URI o URL remota). Reemplaza la imagen previa en Cloudinary.",
+      },
       tags: {
         type: "array",
         items: { type: "string" },
+      },
+    },
+  },
+  NewsHistoryEntry: {
+    type: "object",
+    properties: {
+      user: {
+        type: "string",
+        pattern: "^[a-fA-F0-9]{24}$",
+        description: "Usuario que realizó la edición",
+      },
+      date: {
+        type: "string",
+        format: "date-time",
+        description: "Fecha/hora del cambio",
       },
     },
   },

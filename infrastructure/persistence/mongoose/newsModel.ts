@@ -48,6 +48,19 @@ const newsSchema = new Schema({
       default: Date.now,
     },
   },
+  history: [
+    {
+      user: {
+        type: Schema.ObjectId,
+        ref: "User",
+        required: [true, "A valid user is required for change history."],
+      },
+      date: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+  ],
   company: {
     type: Schema.ObjectId,
     ref: "Company",

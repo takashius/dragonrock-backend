@@ -7,6 +7,7 @@ import type { UpdateNewsUseCase } from "../../application/news/updateNewsUseCase
 import type { DeleteNewsUseCase } from "../../application/news/deleteNewsUseCase.js";
 import { sendNewsOutcome } from "./newsHttpMapper.js";
 import type { AuthMiddlewareFactory } from "./authMiddlewareFactory.js";
+import { parseNewsMultipartImage } from "./parseNewsMultipartImage.js";
 import { validateBody, validateParams, validateQuery } from "./validateRequest.js";
 import {
   createNewsBodySchema,
@@ -80,32 +81,45 @@ export function createNewsRouter(deps: NewsRouterDeps): Router {
   }
   );
 
-  router.post("/", auth(), validateBody(createNewsBodySchema), async (req, res) => {
-    try {
-      const news = await deps.createNews.execute(
-        req.body as CreateNewsBody,
-        String(req.user!._id),
-        String(req.user!.company)
-      );
-      sendNewsOutcome(res, req, news);
-    } catch (e: unknown) {
-      console.log("[ERROR] -> addNews", e);
-      res.status(500).send("Unexpected Error");
+  router.post(
+    "/",
+    auth(),
+    parseNewsMultipartImage,
+    validateBody(createNewsBodySchema),
+    async (req, res) => {
+      try {
+        const news = await deps.createNews.execute(
+          req.body as CreateNewsBody,
+          String(req.user!._id),
+          String(req.user!.company)
+        );
+        sendNewsOutcome(res, req, news);
+      } catch (e: unknown) {
+        console.log("[ERROR] -> addNews", e);
+        res.status(500).send("Unexpected Error");
+      }
     }
-  });
+  );
 
-  router.patch("/", auth(), validateBody(updateNewsBodySchema), async (req, res) => {
-    try {
-      const news = await deps.updateNews.execute(
-        req.body as UpdateNewsBody,
-        String(req.user!.company)
-      );
-      sendNewsOutcome(res, req, news);
-    } catch (e: unknown) {
-      console.log("[ERROR] -> updateNews", e);
-      res.status(500).send("Unexpected Error");
+  router.patch(
+    "/",
+    auth(),
+    parseNewsMultipartImage,
+    validateBody(updateNewsBodySchema),
+    async (req, res) => {
+      try {
+        const news = await deps.updateNews.execute(
+          req.body as UpdateNewsBody,
+          String(req.user!.company),
+          String(req.user!._id)
+        );
+        sendNewsOutcome(res, req, news);
+      } catch (e: unknown) {
+        console.log("[ERROR] -> updateNews", e);
+        res.status(500).send("Unexpected Error");
+      }
     }
-  });
+  );
 
   router.delete(
     "/:id",

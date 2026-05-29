@@ -4,4 +4,5 @@
  */
 export { wireUserHttpStack } from "./wireUserHttpStack.js";
 export { wireNewsRouter } from "./wireNewsRouter.js";
+export { wireEntrepreneurshipRouter } from "./wireEntrepreneurshipRouter.js";
 export { wireMediaRouter } from "./wireMediaRouter.js";

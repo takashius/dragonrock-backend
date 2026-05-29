@@ -1,5 +1,6 @@
 import user from "./documentation/user.js";
 import news from "./documentation/news.js";
+import entrepreneurship from "./documentation/entrepreneurship.js";
 import media from "./documentation/media.js";
 
 const definition = {
@@ -8,7 +9,7 @@ const definition = {
     version: "2.0.0",
     title: "DragonRock API",
     description:
-      "Backend DragonRock — API documentada alineada con rutas migradas (usuarios, noticias).\n\n" +
+      "Backend DragonRock — API documentada alineada con rutas migradas (usuarios, noticias, emprende).\n\n" +
       "Errores de validación (Zod): respuesta **400** con cuerpo JSON `{ \"error\": \"Validación\", \"issues\": ... }` en rutas con cuerpo/query/params validados.\n" +
       "Rutas públicas sensibles (login, registro, recuperación) pueden responder **429** por límite de peticiones (`express-rate-limit`).",
     license: {
@@ -27,6 +28,10 @@ const definition = {
     {
       name: "News",
       description: "Noticias por empresa",
+    },
+    {
+      name: "Entrepreneurship",
+      description: "Entrevistas Emprende por empresa",
     },
     {
       name: "Media",
@@ -63,12 +68,21 @@ const definition = {
     "/news/public": news.publicListNews,
     "/news/public/{id}": news.publicNewsById,
     "/news/{id}": news.newsById,
+    "/entrepreneurship": {
+      post: entrepreneurship.createEntrepreneurship.post,
+      patch: entrepreneurship.updateEntrepreneurship.patch,
+    },
+    "/entrepreneurship/paginate": entrepreneurship.paginateEntrepreneurship,
+    "/entrepreneurship/public": entrepreneurship.publicListEntrepreneurship,
+    "/entrepreneurship/public/{id}": entrepreneurship.publicEntrepreneurshipById,
+    "/entrepreneurship/{id}": entrepreneurship.entrepreneurshipById,
     "/media/upload": media.uploadMedia,
     "/media/destroy": media.destroyMedia,
   },
   definitions: {
     ...user.definitions,
     ...news.definitions,
+    ...entrepreneurship.definitions,
     ...media.definitions,
   },
 };

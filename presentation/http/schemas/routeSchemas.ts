@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const objectIdString = z
+export const objectIdString = z
   .string()
   .regex(/^[a-fA-F0-9]{24}$/, "id inválido");
 const userRoleEnum = z.enum(["Administrador", "Editor", "Autor"]);

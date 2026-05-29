@@ -84,14 +84,16 @@ Antes de desplegar con `NODE_ENV=production`:
 │   └── routes.ts            # Entrada de rutas → delega en composition
 │
 ├── composition/             # Composición (DI manual)
-│   ├── registerRoutes.ts    # Montaje `/user`, `/news` y `/media` en Express
+│   ├── registerRoutes.ts    # Montaje `/user`, `/news`, `/entrepreneurship` y `/media` en Express
 │   ├── wireHttpApi.ts       # Reexporta cables por módulo (entrada estable)
 │   ├── wireUserHttpStack.ts # Usuario: repos, JWT, mail, casos de uso, router
-│   └── wireNewsRouter.ts    # Noticias: repo, casos de uso, router
+│   ├── wireNewsRouter.ts    # Noticias: repo, casos de uso, router
+│   ├── wireEntrepreneurshipRouter.ts  # Emprende: entrevistas
 │
 ├── application/             # Casos de uso + puertos + tipos de resultado
 │   ├── ports/               # Interfaces (repositorios, mail, JWT, empresa…)
 │   ├── types/               # Outcomes HTTP-compatibles, AuthUserPayload, etc.
+│   ├── entrepreneurship/
 │   ├── news/
 │   └── user/
 │
@@ -135,6 +137,7 @@ Flujo típico: **Request** → **Router (presentation)** → **Caso de uso (appl
 |-----------|-----------|
 | `/user`   | CRUD usuario, login, logout, empresas asociadas, recuperación de contraseña, registro público |
 | `/news`   | CRUD autenticado por empresa + endpoints públicos (`/news/public`, `/news/public/:id`) que solo exponen noticias publicadas |
+| `/entrepreneurship` | Entrevistas Emprende: paginación admin, CRUD, imagen destacada en Cloudinary, público en `/entrepreneurship/public` |
 | `/media`  | Subida y eliminación de archivos en Cloudinary (JWT requerido) |
 
 La autenticación usa **JWT** en `Authorization: Bearer <token>`. El middleware rellena `req.user` (`AuthUserPayload`).
@@ -142,7 +145,7 @@ La autenticación usa **JWT** en `Authorization: Bearer <token>`. El middleware 
 ### Documentación OpenAPI
 
 - **`/api-docs`**: Swagger UI (solo si `swaggerEnabled` en configuración; en producción típicamente desactivado).
-- Definición en `swagger.ts` + `documentation/user.ts`, `documentation/news.ts` y `documentation/media.ts`.
+- Definición en `swagger.ts` + `documentation/user.ts`, `documentation/news.ts`, `documentation/entrepreneurship.ts` y `documentation/media.ts`.
 
 ## Principios de diseño (resumen)
 

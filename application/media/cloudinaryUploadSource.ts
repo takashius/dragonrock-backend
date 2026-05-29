@@ -46,3 +46,6 @@ export function resolveFeaturedImageForUpload(
   }
   return { upload: false };
 }
+
+/** Alias genérico para campos `image` u otros distintos de `featuredImage`. */
+export const resolveImageForUpload = resolveFeaturedImageForUpload;

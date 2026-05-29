@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import {
   wireEntrepreneurshipRouter,
+  wireLiveEventsRouter,
   wireMediaRouter,
   wireNewsRouter,
   wireUserHttpStack,
@@ -20,5 +21,6 @@ export function registerRoutes(app: Express): void {
     `${API_PREFIX}/entrepreneurship`,
     wireEntrepreneurshipRouter(auth)
   );
+  app.use(`${API_PREFIX}/live-events`, wireLiveEventsRouter(auth));
   app.use(`${API_PREFIX}/media`, wireMediaRouter(auth));
 }

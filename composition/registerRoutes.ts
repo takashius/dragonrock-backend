@@ -3,6 +3,7 @@ import {
   wireEntrepreneurshipRouter,
   wireLiveEventsRouter,
   wireMediaRouter,
+  wireMultimediaRouter,
   wireNewsRouter,
   wireUserHttpStack,
 } from "./wireHttpApi.js";
@@ -22,5 +23,6 @@ export function registerRoutes(app: Express): void {
     wireEntrepreneurshipRouter(auth)
   );
   app.use(`${API_PREFIX}/live-events`, wireLiveEventsRouter(auth));
+  app.use(`${API_PREFIX}/multimedia`, wireMultimediaRouter(auth));
   app.use(`${API_PREFIX}/media`, wireMediaRouter(auth));
 }

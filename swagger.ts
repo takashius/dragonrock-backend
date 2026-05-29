@@ -2,6 +2,7 @@ import user from "./documentation/user.js";
 import news from "./documentation/news.js";
 import entrepreneurship from "./documentation/entrepreneurship.js";
 import liveEvents from "./documentation/liveEvents.js";
+import multimedia from "./documentation/multimedia.js";
 import media from "./documentation/media.js";
 
 const definition = {
@@ -10,7 +11,7 @@ const definition = {
     version: "2.0.0",
     title: "DragonRock API",
     description:
-      "Backend DragonRock — API documentada alineada con rutas migradas (usuarios, noticias, emprende, en vivo).\n\n" +
+      "Backend DragonRock — API documentada alineada con rutas migradas (usuarios, noticias, emprende, en vivo, multimedia).\n\n" +
       "Errores de validación (Zod): respuesta **400** con cuerpo JSON `{ \"error\": \"Validación\", \"issues\": ... }` en rutas con cuerpo/query/params validados.\n" +
       "Rutas públicas sensibles (login, registro, recuperación) pueden responder **429** por límite de peticiones (`express-rate-limit`).",
     license: {
@@ -37,6 +38,10 @@ const definition = {
     {
       name: "LiveEvents",
       description: "Eventos en vivo por empresa",
+    },
+    {
+      name: "Multimedia",
+      description: "Videos, podcasts y galerías por empresa",
     },
     {
       name: "Media",
@@ -89,6 +94,14 @@ const definition = {
     "/live-events/public": liveEvents.publicListLiveEvents,
     "/live-events/public/{id}": liveEvents.publicLiveEventById,
     "/live-events/{id}": liveEvents.liveEventById,
+    "/multimedia": {
+      post: multimedia.createMultimedia.post,
+      patch: multimedia.updateMultimedia.patch,
+    },
+    "/multimedia/paginate": multimedia.paginateMultimedia,
+    "/multimedia/public": multimedia.publicListMultimedia,
+    "/multimedia/public/{id}": multimedia.publicMultimediaById,
+    "/multimedia/{id}": multimedia.multimediaById,
     "/media/upload": media.uploadMedia,
     "/media/destroy": media.destroyMedia,
   },
@@ -97,6 +110,7 @@ const definition = {
     ...news.definitions,
     ...entrepreneurship.definitions,
     ...liveEvents.definitions,
+    ...multimedia.definitions,
     ...media.definitions,
   },
 };

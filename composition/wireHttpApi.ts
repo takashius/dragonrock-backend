@@ -6,4 +6,5 @@ export { wireUserHttpStack } from "./wireUserHttpStack.js";
 export { wireNewsRouter } from "./wireNewsRouter.js";
 export { wireEntrepreneurshipRouter } from "./wireEntrepreneurshipRouter.js";
 export { wireLiveEventsRouter } from "./wireLiveEventsRouter.js";
+export { wireMultimediaRouter } from "./wireMultimediaRouter.js";
 export { wireMediaRouter } from "./wireMediaRouter.js";

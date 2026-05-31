@@ -5,6 +5,7 @@ import {
   wireMediaRouter,
   wireMultimediaRouter,
   wireServicesRouter,
+  wireStoreCategoriesRouter,
   wireNewsRouter,
   wireUserHttpStack,
 } from "./wireHttpApi.js";
@@ -26,5 +27,9 @@ export function registerRoutes(app: Express): void {
   app.use(`${API_PREFIX}/live-events`, wireLiveEventsRouter(auth));
   app.use(`${API_PREFIX}/multimedia`, wireMultimediaRouter(auth));
   app.use(`${API_PREFIX}/services`, wireServicesRouter(auth));
+  app.use(
+    `${API_PREFIX}/store/categories`,
+    wireStoreCategoriesRouter(auth)
+  );
   app.use(`${API_PREFIX}/media`, wireMediaRouter(auth));
 }

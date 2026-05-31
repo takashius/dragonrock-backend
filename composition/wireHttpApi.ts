@@ -8,4 +8,5 @@ export { wireEntrepreneurshipRouter } from "./wireEntrepreneurshipRouter.js";
 export { wireLiveEventsRouter } from "./wireLiveEventsRouter.js";
 export { wireMultimediaRouter } from "./wireMultimediaRouter.js";
 export { wireServicesRouter } from "./wireServicesRouter.js";
+export { wireStoreCategoriesRouter } from "./wireStoreCategoriesRouter.js";
 export { wireMediaRouter } from "./wireMediaRouter.js";

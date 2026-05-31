@@ -4,6 +4,7 @@ import entrepreneurship from "./documentation/entrepreneurship.js";
 import liveEvents from "./documentation/liveEvents.js";
 import multimedia from "./documentation/multimedia.js";
 import services from "./documentation/services.js";
+import storeCategories from "./documentation/storeCategories.js";
 import media from "./documentation/media.js";
 
 const definition = {
@@ -12,7 +13,7 @@ const definition = {
     version: "2.0.0",
     title: "DragonRock API",
     description:
-      "Backend DragonRock — API documentada alineada con rutas migradas (usuarios, noticias, emprende, en vivo, multimedia, servicios).\n\n" +
+      "Backend DragonRock — API documentada alineada con rutas migradas (usuarios, noticias, emprende, en vivo, multimedia, servicios, tienda).\n\n" +
       "Errores de validación (Zod): respuesta **400** con cuerpo JSON `{ \"error\": \"Validación\", \"issues\": ... }` en rutas con cuerpo/query/params validados.\n" +
       "Rutas públicas sensibles (login, registro, recuperación) pueden responder **429** por límite de peticiones (`express-rate-limit`).",
     license: {
@@ -47,6 +48,10 @@ const definition = {
     {
       name: "Services",
       description: "Servicios por empresa",
+    },
+    {
+      name: "StoreCategories",
+      description: "Categorías de la tienda por empresa",
     },
     {
       name: "Media",
@@ -115,6 +120,13 @@ const definition = {
     "/services/public": services.publicListServices,
     "/services/public/{id}": services.publicServiceById,
     "/services/{id}": services.serviceById,
+    "/store/categories": {
+      post: storeCategories.createStoreCategory.post,
+      patch: storeCategories.updateStoreCategory.patch,
+    },
+    "/store/categories/simple": storeCategories.simpleListStoreCategories,
+    "/store/categories/paginate": storeCategories.paginateStoreCategories,
+    "/store/categories/{id}": storeCategories.storeCategoryById,
     "/media/upload": media.uploadMedia,
     "/media/destroy": media.destroyMedia,
   },
@@ -125,6 +137,7 @@ const definition = {
     ...liveEvents.definitions,
     ...multimedia.definitions,
     ...services.definitions,
+    ...storeCategories.definitions,
     ...media.definitions,
   },
 };

@@ -5,6 +5,7 @@ import liveEvents from "./documentation/liveEvents.js";
 import multimedia from "./documentation/multimedia.js";
 import services from "./documentation/services.js";
 import storeCategories from "./documentation/storeCategories.js";
+import storeProducts from "./documentation/storeProducts.js";
 import media from "./documentation/media.js";
 
 const definition = {
@@ -52,6 +53,10 @@ const definition = {
     {
       name: "StoreCategories",
       description: "Categorías de la tienda por empresa",
+    },
+    {
+      name: "StoreProducts",
+      description: "Productos de la tienda por empresa",
     },
     {
       name: "Media",
@@ -127,6 +132,12 @@ const definition = {
     "/store/categories/simple": storeCategories.simpleListStoreCategories,
     "/store/categories/paginate": storeCategories.paginateStoreCategories,
     "/store/categories/{id}": storeCategories.storeCategoryById,
+    "/store/products": {
+      post: storeProducts.createStoreProduct.post,
+      patch: storeProducts.updateStoreProduct.patch,
+    },
+    "/store/products/paginate": storeProducts.paginateStoreProducts,
+    "/store/products/{id}": storeProducts.storeProductById,
     "/media/upload": media.uploadMedia,
     "/media/destroy": media.destroyMedia,
   },
@@ -138,6 +149,7 @@ const definition = {
     ...multimedia.definitions,
     ...services.definitions,
     ...storeCategories.definitions,
+    ...storeProducts.definitions,
     ...media.definitions,
   },
 };

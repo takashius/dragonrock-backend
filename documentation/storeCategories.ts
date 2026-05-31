@@ -79,7 +79,7 @@ const paginateStoreCategories = {
     responses: {
       200: {
         description:
-          "Resultado paginado. Cada ítem incluye `productCount` (productos asociados; por ahora 0 hasta implementar productos).",
+          "Resultado paginado. Cada ítem incluye `productCount` (productos activos asociados).",
       },
       400: validation400,
       401: { description: "No autorizado" },

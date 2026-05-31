@@ -9,4 +9,5 @@ export { wireLiveEventsRouter } from "./wireLiveEventsRouter.js";
 export { wireMultimediaRouter } from "./wireMultimediaRouter.js";
 export { wireServicesRouter } from "./wireServicesRouter.js";
 export { wireStoreCategoriesRouter } from "./wireStoreCategoriesRouter.js";
+export { wireStoreProductsRouter } from "./wireStoreProductsRouter.js";
 export { wireMediaRouter } from "./wireMediaRouter.js";

@@ -1,47 +1,30 @@
-import StoreCategory from "./mongoose/storeCategoryModel.js";
 import StoreProduct from "./mongoose/storeProductModel.js";
-import type { StoreCategoryRepository } from "../../application/ports/storeCategoryRepository.js";
-import type { StoreCategoryOutcome } from "../../application/types/storeCategoryOutcome.js";
+import type { StoreProductRepository } from "../../application/ports/storeProductRepository.js";
+import type { StoreProductOutcome } from "../../application/types/storeProductOutcome.js";
 
 function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 const listSelect =
-  "name slug description featuredImage status created history";
+  "name slug category status price compareAtPrice stock sku description featuredImage galleryImages isFeatured tags created history";
 
-export class MongooseStoreCategoryRepository implements StoreCategoryRepository {
-  async listSimple(companyId: string): Promise<StoreCategoryOutcome> {
-    try {
-      const rows = await StoreCategory.find({
-        active: true,
-        status: "activa",
-        company: companyId,
-      })
-        .select("name")
-        .sort({ name: 1 })
-        .lean();
-      const result = rows.map((row) => ({
-        id: String(row._id),
-        name: row.name,
-      }));
-      return { status: 200, message: result };
-    } catch (e) {
-      console.log("[ERROR] -> listSimpleStoreCategories", e);
-      return { status: 400, message: "Results error", detail: e };
-    }
-  }
-
-  async getDetail(id: string, companyId: string): Promise<StoreCategoryOutcome> {
+export class MongooseStoreProductRepository implements StoreProductRepository {
+  async getDetail(id: string, companyId: string): Promise<StoreProductOutcome> {
     try {
       if (!id?.trim()) {
-        return { status: 400, message: "Category id is required" };
+        return { status: 400, message: "Product id is required" };
       }
-      const result = await StoreCategory.findOne({
+      const result = await StoreProduct.findOne({
         _id: id,
         active: true,
         company: companyId,
       })
+        .populate({
+          path: "category",
+          select: ["name", "slug", "status"],
+          model: "StoreCategory",
+        })
         .populate({
           path: "created.user",
           select: ["name", "lastname"],
@@ -53,14 +36,14 @@ export class MongooseStoreCategoryRepository implements StoreCategoryRepository 
           model: "User",
         });
       if (!result) {
-        return { status: 404, message: "Category not found" };
+        return { status: 404, message: "Product not found" };
       }
       return { status: 200, message: result };
     } catch (e: unknown) {
       if (e instanceof Error && e.name === "CastError") {
-        return { status: 400, message: "Invalid category id" };
+        return { status: 400, message: "Invalid product id" };
       }
-      console.log("[ERROR] -> getStoreCategoryDetail", e);
+      console.log("[ERROR] -> getStoreProductDetail", e);
       return { status: 400, message: "Results error", detail: e };
     }
   }
@@ -68,11 +51,12 @@ export class MongooseStoreCategoryRepository implements StoreCategoryRepository 
   async paginate(params: {
     search?: string;
     filter: unknown;
+    category?: unknown;
     status?: unknown;
     page: unknown;
     pageSize?: unknown;
     companyId: string;
-  }): Promise<StoreCategoryOutcome> {
+  }): Promise<StoreProductOutcome> {
     try {
       const defaultLimit = 20;
       const maxLimit = 100;
@@ -89,6 +73,13 @@ export class MongooseStoreCategoryRepository implements StoreCategoryRepository 
       };
 
       if (
+        params.category !== undefined &&
+        params.category !== null &&
+        String(params.category).trim()
+      ) {
+        query.category = String(params.category).trim();
+      }
+      if (
         params.status !== undefined &&
         params.status !== null &&
         String(params.status).trim()
@@ -98,7 +89,13 @@ export class MongooseStoreCategoryRepository implements StoreCategoryRepository 
 
       if (searchText) {
         const regex = { $regex: escapeRegex(searchText), $options: "i" };
-        query.$or = [{ name: regex }, { slug: regex }, { description: regex }];
+        query.$or = [
+          { name: regex },
+          { slug: regex },
+          { sku: regex },
+          { description: regex },
+          { tags: regex },
+        ];
       }
 
       const pageNum = Math.max(1, parseInt(String(params.page), 10) || 1);
@@ -111,8 +108,13 @@ export class MongooseStoreCategoryRepository implements StoreCategoryRepository 
           ? Math.min(requestedLimit, maxLimit)
           : defaultLimit;
 
-      const rows = await StoreCategory.find(query)
+      const result = await StoreProduct.find(query)
         .select(listSelect)
+        .populate({
+          path: "category",
+          select: ["name", "slug"],
+          model: "StoreCategory",
+        })
         .populate({
           path: "created.user",
           select: ["name", "lastname"],
@@ -120,18 +122,8 @@ export class MongooseStoreCategoryRepository implements StoreCategoryRepository 
         })
         .limit(limit)
         .skip((pageNum - 1) * limit)
-        .sort({ name: 1 });
-      const result = await Promise.all(
-        rows.map(async (doc) => ({
-          ...doc.toObject(),
-          productCount: await StoreProduct.countDocuments({
-            active: true,
-            company: params.companyId,
-            category: doc._id,
-          }),
-        }))
-      );
-      const total = await StoreCategory.countDocuments(query);
+        .sort({ "created.date": -1 });
+      const total = await StoreProduct.countDocuments(query);
       const totalPages = Math.ceil(total / limit);
       const next = (): number | null => {
         if (totalPages > pageNum) {
@@ -143,7 +135,7 @@ export class MongooseStoreCategoryRepository implements StoreCategoryRepository 
         status: 200,
         message: {
           results: result,
-          totalCategories: total,
+          totalProducts: total,
           totalPages,
           currentPage: pageNum,
           pageSize: limit,
@@ -151,7 +143,7 @@ export class MongooseStoreCategoryRepository implements StoreCategoryRepository 
         },
       };
     } catch (e) {
-      console.log("[ERROR] -> paginateStoreCategories", e);
+      console.log("[ERROR] -> paginateStoreProducts", e);
       return { status: 400, message: "Results error", detail: e };
     }
   }
@@ -160,21 +152,29 @@ export class MongooseStoreCategoryRepository implements StoreCategoryRepository 
     data: Record<string, unknown>,
     userId: string,
     companyId: string
-  ): Promise<StoreCategoryOutcome> {
+  ): Promise<StoreProductOutcome> {
     try {
-      const doc = new StoreCategory({
+      const doc = new StoreProduct({
         name: data.name,
         slug: data.slug,
+        category: data.category,
+        status: data.status,
+        price: data.price,
+        compareAtPrice: data.compareAtPrice,
+        stock: data.stock,
+        sku: data.sku,
         description: data.description,
         featuredImage: data.featuredImage,
-        status: data.status ?? "activa",
+        galleryImages: data.galleryImages ?? [],
+        isFeatured: data.isFeatured ?? false,
+        tags: data.tags ?? [],
         company: companyId,
         created: { user: userId },
       });
       const result = await doc.save();
       return { status: 200, message: result };
     } catch (e) {
-      console.log("[ERROR] -> createStoreCategory", e);
+      console.log("[ERROR] -> createStoreProduct", e);
       return { status: 400, message: "Results error", detail: e };
     }
   }
@@ -183,14 +183,14 @@ export class MongooseStoreCategoryRepository implements StoreCategoryRepository 
     data: { id: string } & Record<string, unknown>,
     companyId: string,
     editorUserId: string
-  ): Promise<StoreCategoryOutcome> {
+  ): Promise<StoreProductOutcome> {
     try {
-      const found = await StoreCategory.findOne({
+      const found = await StoreProduct.findOne({
         _id: data.id,
         company: companyId,
       });
       if (!found) {
-        return { status: 400, message: "Category not found" };
+        return { status: 400, message: "Product not found" };
       }
       if (data.name !== undefined) {
         found.name = data.name as string;
@@ -198,14 +198,44 @@ export class MongooseStoreCategoryRepository implements StoreCategoryRepository 
       if (data.slug !== undefined) {
         found.slug = data.slug as string;
       }
+      if (data.category !== undefined) {
+        found.category = data.category as import("mongoose").Types.ObjectId;
+      }
+      if (data.status !== undefined) {
+        found.status = data.status as "activo" | "inactivo" | "agotado";
+      }
+      if (data.price !== undefined) {
+        found.price = data.price as number;
+      }
+      if (data.compareAtPrice !== undefined) {
+        found.compareAtPrice = data.compareAtPrice as number | undefined;
+      }
+      if (data.clearCompareAtPrice === true) {
+        found.compareAtPrice = undefined;
+      }
+      if (data.stock !== undefined) {
+        found.stock = data.stock as number;
+      }
+      if (data.sku !== undefined) {
+        found.sku = data.sku as string;
+      }
       if (data.description !== undefined) {
         found.description = data.description as string;
       }
       if (data.featuredImage !== undefined) {
         found.featuredImage = data.featuredImage as string;
       }
-      if (data.status !== undefined) {
-        found.status = data.status as "activa" | "inactiva";
+      if (data.galleryImages !== undefined) {
+        found.galleryImages = data.galleryImages as string[];
+      }
+      if (data.clearGallery === true) {
+        found.galleryImages = [];
+      }
+      if (data.isFeatured !== undefined) {
+        found.isFeatured = Boolean(data.isFeatured);
+      }
+      if (data.tags !== undefined) {
+        found.tags = data.tags as string[];
       }
       found.history = found.history.concat({
         user: editorUserId as unknown as import("mongoose").Types.ObjectId,
@@ -214,31 +244,32 @@ export class MongooseStoreCategoryRepository implements StoreCategoryRepository 
       await found.save();
       return { status: 200, message: found };
     } catch (e) {
-      console.log("[ERROR] -> updateStoreCategory", e);
+      console.log("[ERROR] -> updateStoreProduct", e);
       return { status: 400, message: "Results error", detail: e };
     }
   }
 
-  async softDelete(id: string, companyId: string): Promise<StoreCategoryOutcome> {
+  async softDelete(id: string, companyId: string): Promise<StoreProductOutcome> {
     try {
-      const found = await StoreCategory.findOne({
+      const found = await StoreProduct.findOne({
         _id: id,
         company: companyId,
       });
       if (!found) {
-        return { status: 400, message: "Category not found" };
+        return { status: 400, message: "Product not found" };
       }
       found.active = false;
       await found.save();
       return {
         status: 200,
         message: {
-          text: "Category deleted successfully",
+          text: "Product deleted successfully",
           featuredImage: found.featuredImage,
+          galleryImages: found.galleryImages,
         },
       };
     } catch (e) {
-      console.log("[ERROR] -> deleteStoreCategory", e);
+      console.log("[ERROR] -> deleteStoreProduct", e);
       return { status: 400, message: "Results error", detail: e };
     }
   }

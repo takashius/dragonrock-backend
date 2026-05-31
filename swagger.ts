@@ -3,6 +3,7 @@ import news from "./documentation/news.js";
 import entrepreneurship from "./documentation/entrepreneurship.js";
 import liveEvents from "./documentation/liveEvents.js";
 import multimedia from "./documentation/multimedia.js";
+import services from "./documentation/services.js";
 import media from "./documentation/media.js";
 
 const definition = {
@@ -11,7 +12,7 @@ const definition = {
     version: "2.0.0",
     title: "DragonRock API",
     description:
-      "Backend DragonRock — API documentada alineada con rutas migradas (usuarios, noticias, emprende, en vivo, multimedia).\n\n" +
+      "Backend DragonRock — API documentada alineada con rutas migradas (usuarios, noticias, emprende, en vivo, multimedia, servicios).\n\n" +
       "Errores de validación (Zod): respuesta **400** con cuerpo JSON `{ \"error\": \"Validación\", \"issues\": ... }` en rutas con cuerpo/query/params validados.\n" +
       "Rutas públicas sensibles (login, registro, recuperación) pueden responder **429** por límite de peticiones (`express-rate-limit`).",
     license: {
@@ -42,6 +43,10 @@ const definition = {
     {
       name: "Multimedia",
       description: "Videos, podcasts y galerías por empresa",
+    },
+    {
+      name: "Services",
+      description: "Servicios por empresa",
     },
     {
       name: "Media",
@@ -102,6 +107,14 @@ const definition = {
     "/multimedia/public": multimedia.publicListMultimedia,
     "/multimedia/public/{id}": multimedia.publicMultimediaById,
     "/multimedia/{id}": multimedia.multimediaById,
+    "/services": {
+      post: services.createService.post,
+      patch: services.updateService.patch,
+    },
+    "/services/paginate": services.paginateServices,
+    "/services/public": services.publicListServices,
+    "/services/public/{id}": services.publicServiceById,
+    "/services/{id}": services.serviceById,
     "/media/upload": media.uploadMedia,
     "/media/destroy": media.destroyMedia,
   },
@@ -111,6 +124,7 @@ const definition = {
     ...entrepreneurship.definitions,
     ...liveEvents.definitions,
     ...multimedia.definitions,
+    ...services.definitions,
     ...media.definitions,
   },
 };

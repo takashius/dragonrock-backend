@@ -55,7 +55,10 @@ async function start(): Promise<void> {
       "/api-docs",
       swaggerUi.serve,
       swaggerUi.setup(definition, {
-        swaggerOptions: { defaultModelsExpandDepth: -1 },
+        swaggerOptions: {
+          docExpansion: "none",
+          defaultModelsExpandDepth: -1,
+        },
       })
     );
   }

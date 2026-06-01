@@ -7,6 +7,7 @@ import services from "./documentation/services.js";
 import storeCategories from "./documentation/storeCategories.js";
 import storeProducts from "./documentation/storeProducts.js";
 import dashboard from "./documentation/dashboard.js";
+import publicHome from "./documentation/publicHome.js";
 import media from "./documentation/media.js";
 
 const definition = {
@@ -62,6 +63,10 @@ const definition = {
     {
       name: "Dashboard",
       description: "Panel administrativo — resumen y actividad reciente",
+    },
+    {
+      name: "Public",
+      description: "Endpoints públicos sin autenticación",
     },
     {
       name: "Media",
@@ -144,6 +149,7 @@ const definition = {
     "/store/products/paginate": storeProducts.paginateStoreProducts,
     "/store/products/{id}": storeProducts.storeProductById,
     "/dashboard": dashboard.getDashboard,
+    "/public/home": publicHome.getPublicHome,
     "/media/upload": media.uploadMedia,
     "/media/destroy": media.destroyMedia,
   },
@@ -157,6 +163,7 @@ const definition = {
     ...storeCategories.definitions,
     ...storeProducts.definitions,
     ...dashboard.definitions,
+    ...publicHome.definitions,
     ...media.definitions,
   },
 };

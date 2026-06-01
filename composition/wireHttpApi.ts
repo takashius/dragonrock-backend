@@ -11,4 +11,5 @@ export { wireServicesRouter } from "./wireServicesRouter.js";
 export { wireStoreCategoriesRouter } from "./wireStoreCategoriesRouter.js";
 export { wireStoreProductsRouter } from "./wireStoreProductsRouter.js";
 export { wireDashboardRouter } from "./wireDashboardRouter.js";
+export { wirePublicHomeRouter } from "./wirePublicHomeRouter.js";
 export { wireMediaRouter } from "./wireMediaRouter.js";

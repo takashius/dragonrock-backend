@@ -6,6 +6,7 @@ import multimedia from "./documentation/multimedia.js";
 import services from "./documentation/services.js";
 import storeCategories from "./documentation/storeCategories.js";
 import storeProducts from "./documentation/storeProducts.js";
+import dashboard from "./documentation/dashboard.js";
 import media from "./documentation/media.js";
 
 const definition = {
@@ -14,7 +15,7 @@ const definition = {
     version: "2.0.0",
     title: "DragonRock API",
     description:
-      "Backend DragonRock — API documentada alineada con rutas migradas (usuarios, noticias, emprende, en vivo, multimedia, servicios, tienda).\n\n" +
+      "Backend DragonRock — API documentada alineada con rutas migradas (usuarios, noticias, emprende, en vivo, multimedia, servicios, tienda, dashboard).\n\n" +
       "Errores de validación (Zod): respuesta **400** con cuerpo JSON `{ \"error\": \"Validación\", \"issues\": ... }` en rutas con cuerpo/query/params validados.\n" +
       "Rutas públicas sensibles (login, registro, recuperación) pueden responder **429** por límite de peticiones (`express-rate-limit`).",
     license: {
@@ -57,6 +58,10 @@ const definition = {
     {
       name: "StoreProducts",
       description: "Productos de la tienda por empresa",
+    },
+    {
+      name: "Dashboard",
+      description: "Panel administrativo — resumen y actividad reciente",
     },
     {
       name: "Media",
@@ -138,6 +143,7 @@ const definition = {
     },
     "/store/products/paginate": storeProducts.paginateStoreProducts,
     "/store/products/{id}": storeProducts.storeProductById,
+    "/dashboard": dashboard.getDashboard,
     "/media/upload": media.uploadMedia,
     "/media/destroy": media.destroyMedia,
   },
@@ -150,6 +156,7 @@ const definition = {
     ...services.definitions,
     ...storeCategories.definitions,
     ...storeProducts.definitions,
+    ...dashboard.definitions,
     ...media.definitions,
   },
 };

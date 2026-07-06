@@ -6,5 +6,9 @@ export interface MailSender {
     subject: string;
     title: string;
     htmlMessage: string;
+    /** Si se define, se usa como HTML completo sin plantilla legacy. */
+    fullHtmlDocument?: string;
+    /** Texto plano; si no se envía, se usa htmlMessage. */
+    textMessage?: string;
   }): Promise<void>;
 }

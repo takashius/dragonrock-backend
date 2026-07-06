@@ -9,12 +9,15 @@ import type {
 } from "../types/storeOrderOutcome.js";
 import { resolveDefaultCompanyForTransactionalMail } from "../user/resolveDefaultCompanyForTransactionalMail.js";
 import {
+  buildStoreOrderEmailDocument,
+  buildStoreOrderPlainText,
+} from "../email/buildStoreOrderEmailDocument.js";
+import {
   asAvailableProducts,
   asCompanyEmail,
   asCompanyName,
   asStoreOrderDoc,
   buildOrderLineSnapshots,
-  buildStoreOrderEmailHtml,
 } from "./storeOrderHelpers.js";
 
 export class CreatePublicStoreOrderUseCase {
@@ -105,12 +108,24 @@ export class CreatePublicStoreOrderUseCase {
       }
 
       const companyName = asCompanyName(resolved.companyRow);
-      const customerHtml = buildStoreOrderEmailHtml({
+      const emailBase = {
         ...orderDoc,
+        companyRow: resolved.companyRow,
+      };
+      const customerDocument = buildStoreOrderEmailDocument({
+        ...emailBase,
         forCustomer: true,
       });
-      const storeHtml = buildStoreOrderEmailHtml({
-        ...orderDoc,
+      const storeDocument = buildStoreOrderEmailDocument({
+        ...emailBase,
+        forCustomer: false,
+      });
+      const customerText = buildStoreOrderPlainText({
+        ...emailBase,
+        forCustomer: true,
+      });
+      const storeText = buildStoreOrderPlainText({
+        ...emailBase,
         forCustomer: false,
       });
 
@@ -122,7 +137,9 @@ export class CreatePublicStoreOrderUseCase {
             toName: orderDoc.customer.name,
             subject: `Pedido recibido — ${orderDoc.orderNumber}`,
             title: "Confirmación de pedido DragonRock",
-            htmlMessage: customerHtml,
+            htmlMessage: customerText,
+            fullHtmlDocument: customerDocument,
+            textMessage: customerText,
           }),
           this.mail.sendTransactional({
             config: resolved.companyRow,
@@ -130,7 +147,9 @@ export class CreatePublicStoreOrderUseCase {
             toName: companyName,
             subject: `Nuevo pedido — ${orderDoc.orderNumber}`,
             title: "Nuevo pedido en la tienda",
-            htmlMessage: storeHtml,
+            htmlMessage: storeText,
+            fullHtmlDocument: storeDocument,
+            textMessage: storeText,
           }),
         ]);
       } catch (mailError: unknown) {

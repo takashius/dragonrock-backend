@@ -37,7 +37,11 @@ export async function mailer(
   nombre: string,
   asunto: string,
   titulo: string,
-  mensaje: string
+  mensaje: string,
+  options?: {
+    fullHtmlDocument?: string;
+    textMessage?: string;
+  }
 ): Promise<void> {
   const fromEmail = config.mailFromEmail?.trim();
   if (!fromEmail) {
@@ -47,7 +51,9 @@ export async function mailer(
   }
   const fromName = config.mailFromName;
   const mj = getMailjetClient();
-  const body = mails.MailDefault(titulo, mensaje);
+  const htmlPart =
+    options?.fullHtmlDocument ?? mails.MailDefault(titulo, mensaje);
+  const textPart = options?.textMessage ?? mensaje;
 
   await mj.post("send", { version: "v3.1" }).request({
     Messages: [
@@ -63,8 +69,8 @@ export async function mailer(
           },
         ],
         Subject: asunto,
-        TextPart: mensaje,
-        HTMLPart: body,
+        TextPart: textPart,
+        HTMLPart: htmlPart,
         CustomID: "c41.Su-J3-41-M4",
       },
     ],

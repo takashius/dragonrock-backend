@@ -72,65 +72,6 @@ export function formatMoney(amount: number): string {
   return amount.toFixed(2);
 }
 
-export function buildStoreOrderEmailHtml(params: {
-  orderNumber: string;
-  customer: StoreOrderCustomerInput;
-  items: StoreOrderLineItemSnapshot[];
-  subtotal: number;
-  total: number;
-  notes?: string;
-  forCustomer: boolean;
-}): string {
-  const rows = params.items
-    .map(
-      (item) => `
-      <tr>
-        <td style="padding:8px;border-bottom:1px solid #eee;">${item.name}</td>
-        <td style="padding:8px;border-bottom:1px solid #eee;text-align:center;">${item.quantity}</td>
-        <td style="padding:8px;border-bottom:1px solid #eee;text-align:right;">$${formatMoney(item.unitPrice)}</td>
-        <td style="padding:8px;border-bottom:1px solid #eee;text-align:right;">$${formatMoney(item.lineTotal)}</td>
-      </tr>`
-    )
-    .join("");
-
-  const intro = params.forCustomer
-    ? `<p>Gracias por tu pedido en DragonRock. Hemos recibido tu solicitud y nos pondremos en contacto contigo pronto.</p>`
-    : `<p>Se ha registrado un nuevo pedido en la tienda DragonRock.</p>`;
-
-  const notesBlock = params.notes?.trim()
-    ? `<p><strong>Notas del cliente:</strong> ${params.notes.trim()}</p>`
-    : "";
-
-  return `
-    ${intro}
-    <p><strong>Número de pedido:</strong> ${params.orderNumber}</p>
-    <p>
-      <strong>Cliente:</strong> ${params.customer.name}<br/>
-      <strong>Correo:</strong> ${params.customer.email}<br/>
-      <strong>Teléfono:</strong> ${params.customer.phone}<br/>
-      <strong>Dirección:</strong> ${params.customer.address}
-    </p>
-    ${notesBlock}
-    <table style="width:100%;border-collapse:collapse;margin-top:16px;">
-      <thead>
-        <tr>
-          <th style="padding:8px;text-align:left;border-bottom:2px solid #ddd;">Producto</th>
-          <th style="padding:8px;text-align:center;border-bottom:2px solid #ddd;">Cant.</th>
-          <th style="padding:8px;text-align:right;border-bottom:2px solid #ddd;">Precio</th>
-          <th style="padding:8px;text-align:right;border-bottom:2px solid #ddd;">Subtotal</th>
-        </tr>
-      </thead>
-      <tbody>${rows}</tbody>
-      <tfoot>
-        <tr>
-          <td colspan="3" style="padding:8px;text-align:right;"><strong>Total</strong></td>
-          <td style="padding:8px;text-align:right;"><strong>$${formatMoney(params.total)}</strong></td>
-        </tr>
-      </tfoot>
-    </table>
-  `;
-}
-
 export function asAvailableProducts(message: unknown): AvailableProduct[] {
   if (!Array.isArray(message)) {
     return [];

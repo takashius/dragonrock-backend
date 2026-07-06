@@ -54,6 +54,7 @@ const payload = {
 
 test("CreatePublicStoreOrderUseCase: crea pedido y envía correos", async () => {
   let mailCount = 0;
+  let sentFullHtml = false;
   const orders = createOrderRepo({
     async create() {
       return {
@@ -97,13 +98,20 @@ test("CreatePublicStoreOrderUseCase: crea pedido y envía correos", async () => 
     async getCompany() {
       return {
         status: 200,
-        message: { name: "DragonRock", email: "tienda@dragonrock.com" },
+        message: {
+          name: "DragonRock",
+          email: "tienda@dragonrock.com",
+          logo: "https://res.cloudinary.com/demo/logo.png",
+        },
       };
     },
   };
   const mail: MailSender = {
-    async sendTransactional() {
+    async sendTransactional(params) {
       mailCount += 1;
+      if (params.fullHtmlDocument?.includes("DragonRock")) {
+        sentFullHtml = true;
+      }
     },
   };
 
@@ -117,6 +125,7 @@ test("CreatePublicStoreOrderUseCase: crea pedido y envía correos", async () => 
 
   assert.equal(out.status, 201);
   assert.equal(mailCount, 2);
+  assert.equal(sentFullHtml, true);
 });
 
 test("CreatePublicStoreOrderUseCase: stock insuficiente no crea pedido", async () => {

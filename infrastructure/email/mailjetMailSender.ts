@@ -9,6 +9,8 @@ export class MailjetMailSender implements MailSender {
     subject: string;
     title: string;
     htmlMessage: string;
+    fullHtmlDocument?: string;
+    textMessage?: string;
   }): Promise<void> {
     await mailer(
       params.config,
@@ -16,7 +18,11 @@ export class MailjetMailSender implements MailSender {
       params.toName,
       params.subject,
       params.title,
-      params.htmlMessage
+      params.htmlMessage,
+      {
+        fullHtmlDocument: params.fullHtmlDocument,
+        textMessage: params.textMessage,
+      }
     );
   }
 }

@@ -1,6 +1,11 @@
 import StoreProduct from "./mongoose/storeProductModel.js";
 import type { StoreProductRepository } from "../../application/ports/storeProductRepository.js";
 import type { StoreProductOutcome } from "../../application/types/storeProductOutcome.js";
+import {
+  listPublicActiveCategoryIds,
+  resolvePublicActiveCategoryId,
+} from "./storePublicHelpers.js";
+import { publicProductSelect } from "./storePublicSelects.js";
 
 function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -8,6 +13,19 @@ function escapeRegex(str: string): string {
 
 const listSelect =
   "name slug category status price compareAtPrice stock sku description featuredImage galleryImages isFeatured tags created history";
+
+const categoryPopulate = {
+  path: "category" as const,
+  select: ["name", "slug"],
+  match: { active: true, status: "activa" },
+  model: "StoreCategory",
+};
+
+function isPublicProductAvailable(
+  doc: { category?: unknown } | null
+): doc is { category: unknown } {
+  return Boolean(doc?.category);
+}
 
 export class MongooseStoreProductRepository implements StoreProductRepository {
   async getDetail(id: string, companyId: string): Promise<StoreProductOutcome> {
@@ -245,6 +263,171 @@ export class MongooseStoreProductRepository implements StoreProductRepository {
       return { status: 200, message: found };
     } catch (e) {
       console.log("[ERROR] -> updateStoreProduct", e);
+      return { status: 400, message: "Results error", detail: e };
+    }
+  }
+
+  async listPublic(params: {
+    search?: string;
+    category?: string;
+    page?: unknown;
+    pageSize?: unknown;
+  }): Promise<StoreProductOutcome> {
+    try {
+      const defaultLimit = 20;
+      const maxLimit = 100;
+      const searchText =
+        params.search !== undefined && params.search !== null
+          ? String(params.search).trim()
+          : "";
+
+      const query: Record<string, unknown> = {
+        active: true,
+        status: "activo",
+      };
+
+      if (params.category?.trim()) {
+        const categoryId = await resolvePublicActiveCategoryId(params.category);
+        if (!categoryId) {
+          return {
+            status: 200,
+            message: {
+              results: [],
+              totalProducts: 0,
+              totalPages: 0,
+              currentPage: 1,
+              pageSize: defaultLimit,
+              next: null,
+            },
+          };
+        }
+        query.category = categoryId;
+      } else {
+        const activeCategoryIds = await listPublicActiveCategoryIds();
+        if (activeCategoryIds.length === 0) {
+          return {
+            status: 200,
+            message: {
+              results: [],
+              totalProducts: 0,
+              totalPages: 0,
+              currentPage: 1,
+              pageSize: defaultLimit,
+              next: null,
+            },
+          };
+        }
+        query.category = { $in: activeCategoryIds };
+      }
+
+      if (searchText) {
+        const regex = { $regex: escapeRegex(searchText), $options: "i" };
+        query.$or = [
+          { name: regex },
+          { slug: regex },
+          { sku: regex },
+          { description: regex },
+          { tags: regex },
+        ];
+      }
+
+      const pageNum = Math.max(1, parseInt(String(params.page ?? "1"), 10) || 1);
+      const requestedLimit =
+        params.pageSize === undefined || params.pageSize === null
+          ? defaultLimit
+          : parseInt(String(params.pageSize), 10);
+      const limit =
+        Number.isFinite(requestedLimit) && requestedLimit > 0
+          ? Math.min(requestedLimit, maxLimit)
+          : defaultLimit;
+
+      const result = await StoreProduct.find(query)
+        .select(publicProductSelect)
+        .populate(categoryPopulate)
+        .limit(limit)
+        .skip((pageNum - 1) * limit)
+        .sort({ name: 1 })
+        .lean();
+
+      const available = result.filter((doc) => isPublicProductAvailable(doc));
+      const total = await StoreProduct.countDocuments(query);
+      const totalPages = Math.ceil(total / limit);
+      const next = (): number | null => {
+        if (totalPages > pageNum) {
+          return pageNum + 1;
+        }
+        return null;
+      };
+
+      return {
+        status: 200,
+        message: {
+          results: available,
+          totalProducts: total,
+          totalPages,
+          currentPage: pageNum,
+          pageSize: limit,
+          next: next(),
+        },
+      };
+    } catch (e) {
+      console.log("[ERROR] -> listPublicStoreProducts", e);
+      return { status: 400, message: "Results error", detail: e };
+    }
+  }
+
+  async getPublicDetail(id: string): Promise<StoreProductOutcome> {
+    try {
+      if (!id?.trim()) {
+        return { status: 400, message: "Product id is required" };
+      }
+      const result = await StoreProduct.findOne({
+        _id: id,
+        active: true,
+        status: "activo",
+      })
+        .select(publicProductSelect)
+        .populate(categoryPopulate)
+        .lean();
+      if (!isPublicProductAvailable(result)) {
+        return {
+          status: 404,
+          message: "Product not found or not available",
+        };
+      }
+      return { status: 200, message: result };
+    } catch (e: unknown) {
+      if (e instanceof Error && e.name === "CastError") {
+        return { status: 400, message: "Invalid product id" };
+      }
+      console.log("[ERROR] -> getPublicStoreProductDetail", e);
+      return { status: 400, message: "Results error", detail: e };
+    }
+  }
+
+  async getPublicDetailBySlug(slug: string): Promise<StoreProductOutcome> {
+    try {
+      const normalized = slug?.trim().toLowerCase();
+      if (!normalized) {
+        return { status: 400, message: "Product slug is required" };
+      }
+      const result = await StoreProduct.findOne({
+        slug: normalized,
+        active: true,
+        status: "activo",
+      })
+        .select(publicProductSelect)
+        .populate(categoryPopulate)
+        .lean();
+      if (!isPublicProductAvailable(result)) {
+        return {
+          status: 404,
+          message: "Product not found or not available",
+        };
+      }
+      return { status: 200, message: result };
+    } catch (e) {
+      console.log("[ERROR] -> getPublicStoreProductBySlug", e);
       return { status: 400, message: "Results error", detail: e };
     }
   }

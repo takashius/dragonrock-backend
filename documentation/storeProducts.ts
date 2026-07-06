@@ -20,6 +20,85 @@ const validation400 = {
   schema: { $ref: "#/definitions/ValidationError" },
 };
 
+const publicListStoreProducts = {
+  get: {
+    tags: ["StoreProducts", "Public"],
+    summary: "Catálogo público de productos activos",
+    description:
+      "Sin autenticación. Solo productos `status: activo` en categorías `activa`. Filtro `category` por id o slug.",
+    parameters: [
+      {
+        name: "search",
+        in: "query",
+        required: false,
+        type: "string",
+        description: "Busca en nombre, slug, SKU, descripción y tags",
+      },
+      {
+        name: "category",
+        in: "query",
+        required: false,
+        type: "string",
+        description: "ObjectId o slug de categoría activa",
+      },
+      {
+        name: "page",
+        in: "query",
+        required: false,
+        type: "string",
+      },
+      {
+        name: "pageSize",
+        in: "query",
+        required: false,
+        type: "string",
+        description: "Por defecto 20, máx. 100",
+      },
+    ],
+    responses: {
+      200: { description: "Resultado paginado de productos públicos" },
+      400: validation400,
+      500: { description: "Error inesperado" },
+    },
+  },
+};
+
+const publicStoreProductById = {
+  get: {
+    tags: ["StoreProducts", "Public"],
+    summary: "Detalle público de producto por id",
+    parameters: [mongoIdPathParam],
+    responses: {
+      200: { description: "Producto activo con categoría poblada" },
+      400: validation400,
+      404: { description: "No encontrado o no disponible" },
+      500: { description: "Error inesperado" },
+    },
+  },
+};
+
+const publicStoreProductBySlug = {
+  get: {
+    tags: ["StoreProducts", "Public"],
+    summary: "Detalle público de producto por slug",
+    parameters: [
+      {
+        name: "slug",
+        in: "path",
+        required: true,
+        type: "string",
+        description: "Slug URL del producto",
+      },
+    ],
+    responses: {
+      200: { description: "Producto activo con categoría poblada" },
+      400: validation400,
+      404: { description: "No encontrado o no disponible" },
+      500: { description: "Error inesperado" },
+    },
+  },
+};
+
 const paginateStoreProducts = {
   get: {
     tags: ["StoreProducts"],
@@ -236,6 +315,9 @@ const definitions = {
 };
 
 export default {
+  publicListStoreProducts,
+  publicStoreProductById,
+  publicStoreProductBySlug,
   paginateStoreProducts,
   storeProductById,
   createStoreProduct,

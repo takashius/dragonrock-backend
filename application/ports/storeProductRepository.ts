@@ -25,4 +25,12 @@ export interface StoreProductRepository {
     editorUserId: string
   ): Promise<StoreProductOutcome>;
   softDelete(id: string, companyId: string): Promise<StoreProductOutcome>;
+  listPublic(params: {
+    search?: string;
+    category?: string;
+    page?: unknown;
+    pageSize?: unknown;
+  }): Promise<StoreProductOutcome>;
+  getPublicDetail(id: string): Promise<StoreProductOutcome>;
+  getPublicDetailBySlug(slug: string): Promise<StoreProductOutcome>;
 }

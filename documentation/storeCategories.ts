@@ -20,6 +20,20 @@ const validation400 = {
   schema: { $ref: "#/definitions/ValidationError" },
 };
 
+const publicListStoreCategories = {
+  get: {
+    tags: ["StoreCategories", "Public"],
+    summary: "Categorías activas para catálogo público",
+    description:
+      "Sin autenticación. Solo categorías con `status: activa` y no eliminadas.",
+    responses: {
+      200: { description: "Array de categorías públicas" },
+      400: validation400,
+      500: { description: "Error inesperado" },
+    },
+  },
+};
+
 const simpleListStoreCategories = {
   get: {
     tags: ["StoreCategories"],
@@ -213,6 +227,7 @@ const definitions = {
 };
 
 export default {
+  publicListStoreCategories,
   simpleListStoreCategories,
   paginateStoreCategories,
   storeCategoryById,

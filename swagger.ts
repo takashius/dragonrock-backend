@@ -140,6 +140,7 @@ const definition = {
       patch: storeCategories.updateStoreCategory.patch,
     },
     "/store/categories/simple": storeCategories.simpleListStoreCategories,
+    "/store/categories/public": storeCategories.publicListStoreCategories,
     "/store/categories/paginate": storeCategories.paginateStoreCategories,
     "/store/categories/{id}": storeCategories.storeCategoryById,
     "/store/products": {
@@ -147,6 +148,9 @@ const definition = {
       patch: storeProducts.updateStoreProduct.patch,
     },
     "/store/products/paginate": storeProducts.paginateStoreProducts,
+    "/store/products/public": storeProducts.publicListStoreProducts,
+    "/store/products/public/slug/{slug}": storeProducts.publicStoreProductBySlug,
+    "/store/products/public/{id}": storeProducts.publicStoreProductById,
     "/store/products/{id}": storeProducts.storeProductById,
     "/dashboard": dashboard.getDashboard,
     "/public/home": publicHome.getPublicHome,

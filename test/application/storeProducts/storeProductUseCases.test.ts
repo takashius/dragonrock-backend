@@ -5,6 +5,9 @@ import type { StoreCategoryRepository } from "../../../application/ports/storeCa
 import type { StoreProductOutcome } from "../../../application/types/storeProductOutcome.js";
 import { CreateStoreProductUseCase } from "../../../application/storeProducts/createStoreProductUseCase.js";
 import { PaginateStoreProductsUseCase } from "../../../application/storeProducts/paginateStoreProductsUseCase.js";
+import { ListPublicStoreProductsUseCase } from "../../../application/storeProducts/listPublicStoreProductsUseCase.js";
+import { GetPublicStoreProductDetailUseCase } from "../../../application/storeProducts/getPublicStoreProductDetailUseCase.js";
+import { GetPublicStoreProductBySlugUseCase } from "../../../application/storeProducts/getPublicStoreProductBySlugUseCase.js";
 
 const ok: StoreProductOutcome = { status: 200, message: [] };
 const categoryOk: StoreProductOutcome = { status: 200, message: { _id: "cat1" } };
@@ -15,6 +18,9 @@ function createProductRepo(
   return {
     getDetail: async () => ok,
     paginate: async () => ok,
+    listPublic: async () => ok,
+    getPublicDetail: async () => ok,
+    getPublicDetailBySlug: async () => ok,
     create: async () => ok,
     update: async () => ok,
     softDelete: async () => ok,
@@ -124,4 +130,50 @@ test("CreateStoreProductUseCase: categoría inexistente retorna 400", async () =
 
   assert.equal(out.status, 400);
   assert.equal(out.message, "Category not found");
+});
+
+test("ListPublicStoreProductsUseCase delega con filtros y paginación", async () => {
+  let seen: Record<string, unknown> | undefined;
+  const repo = createProductRepo({
+    async listPublic(params) {
+      seen = params;
+      return ok;
+    },
+  });
+  await new ListPublicStoreProductsUseCase(repo).execute({
+    search: "camiseta",
+    category: "camisetas",
+    page: "2",
+    pageSize: "10",
+  });
+  assert.deepEqual(seen, {
+    search: "camiseta",
+    category: "camisetas",
+    page: "2",
+    pageSize: "10",
+  });
+});
+
+test("GetPublicStoreProductDetailUseCase delega con id", async () => {
+  let seenId = "";
+  const repo = createProductRepo({
+    async getPublicDetail(id) {
+      seenId = id;
+      return ok;
+    },
+  });
+  await new GetPublicStoreProductDetailUseCase(repo).execute("507f1f77bcf86cd799439011");
+  assert.equal(seenId, "507f1f77bcf86cd799439011");
+});
+
+test("GetPublicStoreProductBySlugUseCase delega con slug", async () => {
+  let seenSlug = "";
+  const repo = createProductRepo({
+    async getPublicDetailBySlug(slug) {
+      seenSlug = slug;
+      return ok;
+    },
+  });
+  await new GetPublicStoreProductBySlugUseCase(repo).execute("camiseta-dragonrock");
+  assert.equal(seenSlug, "camiseta-dragonrock");
 });

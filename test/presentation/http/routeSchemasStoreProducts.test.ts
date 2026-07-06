@@ -4,6 +4,8 @@ import {
   createStoreProductBodySchema,
   updateStoreProductBodySchema,
   paginateStoreProductsQuerySchema,
+  listPublicStoreProductsQuerySchema,
+  productSlugParamSchema,
 } from "../../../presentation/http/schemas/routeSchemasStoreProducts.js";
 
 test("createStoreProductBodySchema: payload válido", () => {
@@ -63,6 +65,35 @@ test("paginateStoreProductsQuerySchema: acepta filtros opcionales", () => {
     status: "agotado",
     page: "1",
     pageSize: "20",
+  });
+  assert.equal(parsed.success, true);
+});
+
+test("listPublicStoreProductsQuerySchema: acepta category por slug e id", () => {
+  const bySlug = listPublicStoreProductsQuerySchema.safeParse({
+    category: "camisetas",
+    search: "dragon",
+    page: "1",
+    pageSize: "20",
+  });
+  assert.equal(bySlug.success, true);
+
+  const byId = listPublicStoreProductsQuerySchema.safeParse({
+    category: "507f1f77bcf86cd799439011",
+  });
+  assert.equal(byId.success, true);
+});
+
+test("listPublicStoreProductsQuerySchema: pageSize inválido falla", () => {
+  const parsed = listPublicStoreProductsQuerySchema.safeParse({
+    pageSize: "abc",
+  });
+  assert.equal(parsed.success, false);
+});
+
+test("productSlugParamSchema: slug válido", () => {
+  const parsed = productSlugParamSchema.safeParse({
+    slug: "camiseta-dragonrock",
   });
   assert.equal(parsed.success, true);
 });

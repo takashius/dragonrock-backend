@@ -2,6 +2,7 @@ import StoreCategory from "./mongoose/storeCategoryModel.js";
 import StoreProduct from "./mongoose/storeProductModel.js";
 import type { StoreCategoryRepository } from "../../application/ports/storeCategoryRepository.js";
 import type { StoreCategoryOutcome } from "../../application/types/storeCategoryOutcome.js";
+import { publicCategorySelect } from "./storePublicSelects.js";
 
 function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -11,6 +12,22 @@ const listSelect =
   "name slug description featuredImage status created history";
 
 export class MongooseStoreCategoryRepository implements StoreCategoryRepository {
+  async listPublic(): Promise<StoreCategoryOutcome> {
+    try {
+      const result = await StoreCategory.find({
+        active: true,
+        status: "activa",
+      })
+        .select(publicCategorySelect)
+        .sort({ name: 1 })
+        .lean();
+      return { status: 200, message: result };
+    } catch (e) {
+      console.log("[ERROR] -> listPublicStoreCategories", e);
+      return { status: 400, message: "Results error", detail: e };
+    }
+  }
+
   async listSimple(companyId: string): Promise<StoreCategoryOutcome> {
     try {
       const rows = await StoreCategory.find({

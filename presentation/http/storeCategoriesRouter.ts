@@ -2,6 +2,7 @@ import express, { type Router } from "express";
 import type { PaginateStoreCategoriesUseCase } from "../../application/storeCategories/paginateStoreCategoriesUseCase.js";
 import type { GetStoreCategoryDetailUseCase } from "../../application/storeCategories/getStoreCategoryDetailUseCase.js";
 import type { ListSimpleStoreCategoriesUseCase } from "../../application/storeCategories/listSimpleStoreCategoriesUseCase.js";
+import type { ListPublicStoreCategoriesUseCase } from "../../application/storeCategories/listPublicStoreCategoriesUseCase.js";
 import type { CreateStoreCategoryUseCase } from "../../application/storeCategories/createStoreCategoryUseCase.js";
 import type { UpdateStoreCategoryUseCase } from "../../application/storeCategories/updateStoreCategoryUseCase.js";
 import type { DeleteStoreCategoryUseCase } from "../../application/storeCategories/deleteStoreCategoryUseCase.js";
@@ -24,6 +25,7 @@ export type StoreCategoriesRouterDeps = {
   paginateStoreCategories: PaginateStoreCategoriesUseCase;
   getStoreCategoryDetail: GetStoreCategoryDetailUseCase;
   listSimpleStoreCategories: ListSimpleStoreCategoriesUseCase;
+  listPublicStoreCategories: ListPublicStoreCategoriesUseCase;
   createStoreCategory: CreateStoreCategoryUseCase;
   updateStoreCategory: UpdateStoreCategoryUseCase;
   deleteStoreCategory: DeleteStoreCategoryUseCase;
@@ -34,6 +36,16 @@ export function createStoreCategoriesRouter(
 ): Router {
   const router = express.Router();
   const { auth } = deps;
+
+  router.get("/public", async (req, res) => {
+    try {
+      const outcome = await deps.listPublicStoreCategories.execute();
+      sendStoreCategoryOutcome(res, req, outcome);
+    } catch (e: unknown) {
+      console.log("[ERROR] -> listPublicStoreCategories", e);
+      res.status(500).send("Unexpected Error");
+    }
+  });
 
   router.get("/simple", auth(), async (req, res) => {
     try {

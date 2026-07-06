@@ -90,3 +90,26 @@ export type UpdateStoreProductBody = z.infer<typeof updateStoreProductBodySchema
 export type PaginateStoreProductsQuery = z.infer<
   typeof paginateStoreProductsQuerySchema
 >;
+
+export const listPublicStoreProductsQuerySchema = z.object({
+  search: z.string().max(500).optional(),
+  category: z.string().min(1).max(200).optional(),
+  page: z
+    .string()
+    .regex(/^\d+$/)
+    .max(10)
+    .optional(),
+  pageSize: z
+    .string()
+    .regex(/^\d+$/)
+    .max(3)
+    .optional(),
+});
+
+export const productSlugParamSchema = z.object({
+  slug: slugSchema,
+});
+
+export type ListPublicStoreProductsQuery = z.infer<
+  typeof listPublicStoreProductsQuerySchema
+>;

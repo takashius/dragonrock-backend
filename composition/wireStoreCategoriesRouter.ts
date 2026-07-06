@@ -5,6 +5,7 @@ import { CloudinaryMediaStorage } from "../infrastructure/media/cloudinaryMediaS
 import { PaginateStoreCategoriesUseCase } from "../application/storeCategories/paginateStoreCategoriesUseCase.js";
 import { GetStoreCategoryDetailUseCase } from "../application/storeCategories/getStoreCategoryDetailUseCase.js";
 import { ListSimpleStoreCategoriesUseCase } from "../application/storeCategories/listSimpleStoreCategoriesUseCase.js";
+import { ListPublicStoreCategoriesUseCase } from "../application/storeCategories/listPublicStoreCategoriesUseCase.js";
 import { CreateStoreCategoryUseCase } from "../application/storeCategories/createStoreCategoryUseCase.js";
 import { UpdateStoreCategoryUseCase } from "../application/storeCategories/updateStoreCategoryUseCase.js";
 import { DeleteStoreCategoryUseCase } from "../application/storeCategories/deleteStoreCategoryUseCase.js";
@@ -31,6 +32,7 @@ export function wireStoreCategoriesRouter(
     paginateStoreCategories: new PaginateStoreCategoriesUseCase(repository),
     getStoreCategoryDetail: new GetStoreCategoryDetailUseCase(repository),
     listSimpleStoreCategories: new ListSimpleStoreCategoriesUseCase(repository),
+    listPublicStoreCategories: new ListPublicStoreCategoriesUseCase(repository),
     createStoreCategory: new CreateStoreCategoryUseCase(
       repository,
       mediaStorage

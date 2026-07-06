@@ -5,6 +5,7 @@ import type { StoreCategoryOutcome } from "../../../application/types/storeCateg
 import { PaginateStoreCategoriesUseCase } from "../../../application/storeCategories/paginateStoreCategoriesUseCase.js";
 import { ListSimpleStoreCategoriesUseCase } from "../../../application/storeCategories/listSimpleStoreCategoriesUseCase.js";
 import { CreateStoreCategoryUseCase } from "../../../application/storeCategories/createStoreCategoryUseCase.js";
+import { ListPublicStoreCategoriesUseCase } from "../../../application/storeCategories/listPublicStoreCategoriesUseCase.js";
 
 const ok: StoreCategoryOutcome = { status: 200, message: [] };
 
@@ -13,6 +14,7 @@ function createRepo(
 ): StoreCategoryRepository {
   return {
     listSimple: async () => ok,
+    listPublic: async () => ok,
     getDetail: async () => ok,
     paginate: async () => ok,
     create: async () => ok,
@@ -77,4 +79,16 @@ test("CreateStoreCategoryUseCase: delega sin Cloudinary si no hay imagen", async
   assert.equal(stored?.name, "Camisetas");
   assert.equal(stored?.description, "Ropa de banda");
   assert.equal("image" in (stored ?? {}), false);
+});
+
+test("ListPublicStoreCategoriesUseCase delega listPublic", async () => {
+  let called = false;
+  const repo = createRepo({
+    async listPublic() {
+      called = true;
+      return ok;
+    },
+  });
+  await new ListPublicStoreCategoriesUseCase(repo).execute();
+  assert.equal(called, true);
 });

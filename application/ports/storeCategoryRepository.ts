@@ -25,4 +25,5 @@ export interface StoreCategoryRepository {
     editorUserId: string
   ): Promise<StoreCategoryOutcome>;
   softDelete(id: string, companyId: string): Promise<StoreCategoryOutcome>;
+  listPublic(): Promise<StoreCategoryOutcome>;
 }

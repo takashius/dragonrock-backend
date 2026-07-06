@@ -6,6 +6,7 @@ import multimedia from "./documentation/multimedia.js";
 import services from "./documentation/services.js";
 import storeCategories from "./documentation/storeCategories.js";
 import storeProducts from "./documentation/storeProducts.js";
+import storeOrders from "./documentation/storeOrders.js";
 import dashboard from "./documentation/dashboard.js";
 import publicHome from "./documentation/publicHome.js";
 import media from "./documentation/media.js";
@@ -59,6 +60,10 @@ const definition = {
     {
       name: "StoreProducts",
       description: "Productos de la tienda por empresa",
+    },
+    {
+      name: "StoreOrders",
+      description: "Pedidos de la tienda",
     },
     {
       name: "Dashboard",
@@ -152,6 +157,9 @@ const definition = {
     "/store/products/public/slug/{slug}": storeProducts.publicStoreProductBySlug,
     "/store/products/public/{id}": storeProducts.publicStoreProductById,
     "/store/products/{id}": storeProducts.storeProductById,
+    "/store/orders/public": storeOrders.createPublicStoreOrder,
+    "/store/orders/paginate": storeOrders.paginateStoreOrders,
+    "/store/orders/{id}": storeOrders.storeOrderById,
     "/dashboard": dashboard.getDashboard,
     "/public/home": publicHome.getPublicHome,
     "/media/upload": media.uploadMedia,
@@ -166,6 +174,7 @@ const definition = {
     ...services.definitions,
     ...storeCategories.definitions,
     ...storeProducts.definitions,
+    ...storeOrders.definitions,
     ...dashboard.definitions,
     ...publicHome.definitions,
     ...media.definitions,

@@ -456,4 +456,120 @@ export class MongooseStoreProductRepository implements StoreProductRepository {
       return { status: 400, message: "Results error", detail: e };
     }
   }
+
+  async findAvailableForOrder(productIds: string[]): Promise<StoreProductOutcome> {
+    try {
+      const uniqueIds = [...new Set(productIds.map((id) => id.trim()).filter(Boolean))];
+      if (uniqueIds.length === 0) {
+        return { status: 400, message: "At least one product is required" };
+      }
+      for (const id of uniqueIds) {
+        if (!/^[a-fA-F0-9]{24}$/.test(id)) {
+          return { status: 400, message: `Invalid product id: ${id}` };
+        }
+      }
+
+      const activeCategoryIds = await listPublicActiveCategoryIds();
+      if (activeCategoryIds.length === 0) {
+        return { status: 400, message: "No active categories available" };
+      }
+
+      const products = await StoreProduct.find({
+        _id: { $in: uniqueIds },
+        active: true,
+        status: "activo",
+        category: { $in: activeCategoryIds },
+      })
+        .select("_id name slug sku price stock status")
+        .lean();
+
+      return { status: 200, message: products };
+    } catch (e) {
+      console.log("[ERROR] -> findAvailableForOrder", e);
+      return { status: 400, message: "Results error", detail: e };
+    }
+  }
+
+  async decrementStockForOrder(
+    items: { productId: string; quantity: number }[]
+  ): Promise<StoreProductOutcome> {
+    const decremented: { productId: string; quantity: number }[] = [];
+    try {
+      for (const item of items) {
+        const updated = await StoreProduct.findOneAndUpdate(
+          {
+            _id: item.productId,
+            active: true,
+            status: "activo",
+            stock: { $gte: item.quantity },
+          },
+          { $inc: { stock: -item.quantity } },
+          { new: true }
+        );
+        if (!updated) {
+          if (decremented.length > 0) {
+            for (const rollback of decremented) {
+              await StoreProduct.updateOne(
+                { _id: rollback.productId },
+                { $inc: { stock: rollback.quantity } }
+              );
+            }
+          }
+          const product = await StoreProduct.findById(item.productId)
+            .select("name")
+            .lean();
+          const label =
+            product && typeof product.name === "string"
+              ? product.name
+              : item.productId;
+          return {
+            status: 409,
+            message: `Insufficient stock for product: ${label}`,
+          };
+        }
+        decremented.push(item);
+        if (updated.stock <= 0) {
+          updated.status = "agotado";
+          await updated.save();
+        } else if (updated.status === "agotado") {
+          updated.status = "activo";
+          await updated.save();
+        }
+      }
+      return { status: 200, message: { ok: true } };
+    } catch (e) {
+      if (decremented.length > 0) {
+        for (const rollback of decremented) {
+          await StoreProduct.updateOne(
+            { _id: rollback.productId },
+            { $inc: { stock: rollback.quantity } }
+          );
+        }
+      }
+      console.log("[ERROR] -> decrementStockForOrder", e);
+      return { status: 400, message: "Results error", detail: e };
+    }
+  }
+
+  async restoreStockForOrder(
+    items: { productId: string; quantity: number }[]
+  ): Promise<StoreProductOutcome> {
+    try {
+      for (const item of items) {
+        const updated = await StoreProduct.findOneAndUpdate(
+          { _id: item.productId, active: true },
+          { $inc: { stock: item.quantity } },
+          { new: true }
+        );
+        if (updated && updated.stock > 0 && updated.status === "agotado") {
+          updated.status = "activo";
+          await updated.save();
+        }
+      }
+      return { status: 200, message: { ok: true } };
+    } catch (e) {
+      console.log("[ERROR] -> restoreStockForOrder", e);
+      return { status: 400, message: "Results error", detail: e };
+    }
+  }
 }

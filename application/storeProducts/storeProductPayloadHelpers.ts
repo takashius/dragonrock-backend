@@ -14,7 +14,7 @@ export function resolveProductStatusFromStock(
   return status;
 }
 
-// TODO(store-sales): al procesar ventas y quedar stock en 0, pasar status a agotado automáticamente.
+// Ventas: el descuento de stock y status agotado se aplican en pedidos públicos (CreatePublicStoreOrderUseCase).
 
 export function stripStoreProductApiFields(
   payload: Record<string, unknown>

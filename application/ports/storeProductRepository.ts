@@ -33,4 +33,11 @@ export interface StoreProductRepository {
   }): Promise<StoreProductOutcome>;
   getPublicDetail(id: string): Promise<StoreProductOutcome>;
   getPublicDetailBySlug(slug: string): Promise<StoreProductOutcome>;
+  findAvailableForOrder(productIds: string[]): Promise<StoreProductOutcome>;
+  decrementStockForOrder(
+    items: { productId: string; quantity: number }[]
+  ): Promise<StoreProductOutcome>;
+  restoreStockForOrder(
+    items: { productId: string; quantity: number }[]
+  ): Promise<StoreProductOutcome>;
 }

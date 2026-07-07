@@ -1,0 +1,11 @@
+# Coolify / Nixpacks — Node + TypeScript
+# Instala devDependencies en build (tsc) aunque NODE_ENV=production esté en buildtime.
+
+[phases.install]
+cmds = ["npm ci --include=dev"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "npm start"

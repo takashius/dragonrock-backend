@@ -71,9 +71,12 @@ async function start(): Promise<void> {
   server.use(expressStatic(path.join(process.cwd(), "static")));
 
   const port = Number(config.port) || 3031;
-  server.listen(port, (err?: Error) => {
+  const listenHost = process.env.LISTEN_HOST?.trim() || "0.0.0.0";
+  server.listen(port, listenHost, (err?: Error) => {
     if (err) throw err;
-    console.log(`Listening on http://localhost:${port}`);
+    console.log(
+      `[startup] NODE_ENV=${config.nodeEnv} listening on http://${listenHost}:${port}`
+    );
   });
 }
 

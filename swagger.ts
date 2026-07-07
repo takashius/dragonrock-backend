@@ -9,6 +9,7 @@ import storeProducts from "./documentation/storeProducts.js";
 import storeOrders from "./documentation/storeOrders.js";
 import dashboard from "./documentation/dashboard.js";
 import publicHome from "./documentation/publicHome.js";
+import contact from "./documentation/contact.js";
 import media from "./documentation/media.js";
 
 const definition = {
@@ -72,6 +73,10 @@ const definition = {
     {
       name: "Public",
       description: "Endpoints públicos sin autenticación",
+    },
+    {
+      name: "Contact",
+      description: "Formulario de contacto del sitio web",
     },
     {
       name: "Media",
@@ -165,6 +170,7 @@ const definition = {
     "/store/orders/{id}": storeOrders.storeOrderById,
     "/dashboard": dashboard.getDashboard,
     "/public/home": publicHome.getPublicHome,
+    "/contact/public": contact.submitPublicContact,
     "/media/upload": media.uploadMedia,
     "/media/destroy": media.destroyMedia,
   },
@@ -180,6 +186,7 @@ const definition = {
     ...storeOrders.definitions,
     ...dashboard.definitions,
     ...publicHome.definitions,
+    ...contact.definitions,
     ...media.definitions,
   },
 };

@@ -11,6 +11,8 @@ export class MailjetMailSender implements MailSender {
     htmlMessage: string;
     fullHtmlDocument?: string;
     textMessage?: string;
+    replyToEmail?: string;
+    replyToName?: string;
   }): Promise<void> {
     await mailer(
       params.config,
@@ -22,6 +24,8 @@ export class MailjetMailSender implements MailSender {
       {
         fullHtmlDocument: params.fullHtmlDocument,
         textMessage: params.textMessage,
+        replyToEmail: params.replyToEmail,
+        replyToName: params.replyToName,
       }
     );
   }

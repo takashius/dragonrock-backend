@@ -10,6 +10,7 @@ import {
   wireStoreOrdersRouter,
   wireDashboardRouter,
   wirePublicHomeRouter,
+  wireContactRouter,
   wireNewsRouter,
   wireUserHttpStack,
 } from "./wireHttpApi.js";
@@ -22,6 +23,7 @@ const API_PREFIX = "";
 
 export function registerRoutes(app: Express): void {
   app.use(`${API_PREFIX}/public`, wirePublicHomeRouter());
+  app.use(`${API_PREFIX}/contact`, wireContactRouter());
 
   const { auth, userRouter } = wireUserHttpStack();
   app.use(`${API_PREFIX}/user`, userRouter);

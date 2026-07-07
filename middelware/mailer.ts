@@ -41,6 +41,8 @@ export async function mailer(
   options?: {
     fullHtmlDocument?: string;
     textMessage?: string;
+    replyToEmail?: string;
+    replyToName?: string;
   }
 ): Promise<void> {
   const fromEmail = config.mailFromEmail?.trim();
@@ -55,24 +57,31 @@ export async function mailer(
     options?.fullHtmlDocument ?? mails.MailDefault(titulo, mensaje);
   const textPart = options?.textMessage ?? mensaje;
 
-  await mj.post("send", { version: "v3.1" }).request({
-    Messages: [
+  const message: Record<string, unknown> = {
+    From: {
+      Email: fromEmail,
+      Name: fromName,
+    },
+    To: [
       {
-        From: {
-          Email: fromEmail,
-          Name: fromName,
-        },
-        To: [
-          {
-            Email: correo,
-            Name: nombre,
-          },
-        ],
-        Subject: asunto,
-        TextPart: textPart,
-        HTMLPart: htmlPart,
-        CustomID: "c41.Su-J3-41-M4",
+        Email: correo,
+        Name: nombre,
       },
     ],
+    Subject: asunto,
+    TextPart: textPart,
+    HTMLPart: htmlPart,
+    CustomID: "c41.Su-J3-41-M4",
+  };
+
+  if (options?.replyToEmail?.trim()) {
+    message.ReplyTo = {
+      Email: options.replyToEmail.trim(),
+      Name: options.replyToName?.trim() || options.replyToEmail.trim(),
+    };
+  }
+
+  await mj.post("send", { version: "v3.1" }).request({
+    Messages: [message],
   });
 }

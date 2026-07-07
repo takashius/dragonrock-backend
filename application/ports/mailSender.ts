@@ -10,5 +10,8 @@ export interface MailSender {
     fullHtmlDocument?: string;
     /** Texto plano; si no se envía, se usa htmlMessage. */
     textMessage?: string;
+    /** Reply-To para que la tienda responda al remitente del formulario. */
+    replyToEmail?: string;
+    replyToName?: string;
   }): Promise<void>;
 }

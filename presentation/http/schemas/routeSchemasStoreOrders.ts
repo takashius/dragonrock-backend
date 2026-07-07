@@ -48,3 +48,10 @@ export type CreatePublicStoreOrderBody = z.infer<
 export type PaginateStoreOrdersQuery = z.infer<
   typeof paginateStoreOrdersQuerySchema
 >;
+
+export const updateStoreOrderBodySchema = z.object({
+  id: objectIdString,
+  status: storeOrderStatusEnum,
+});
+
+export type UpdateStoreOrderBody = z.infer<typeof updateStoreOrderBodySchema>;

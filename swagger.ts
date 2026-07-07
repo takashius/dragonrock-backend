@@ -158,6 +158,9 @@ const definition = {
     "/store/products/public/{id}": storeProducts.publicStoreProductById,
     "/store/products/{id}": storeProducts.storeProductById,
     "/store/orders/public": storeOrders.createPublicStoreOrder,
+    "/store/orders": {
+      patch: storeOrders.updateStoreOrder.patch,
+    },
     "/store/orders/paginate": storeOrders.paginateStoreOrders,
     "/store/orders/{id}": storeOrders.storeOrderById,
     "/dashboard": dashboard.getDashboard,

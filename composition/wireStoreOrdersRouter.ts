@@ -7,6 +7,7 @@ import { MailjetMailSender } from "../infrastructure/email/mailjetMailSender.js"
 import { CreatePublicStoreOrderUseCase } from "../application/storeOrders/createPublicStoreOrderUseCase.js";
 import { PaginateStoreOrdersUseCase } from "../application/storeOrders/paginateStoreOrdersUseCase.js";
 import { GetStoreOrderDetailUseCase } from "../application/storeOrders/getStoreOrderDetailUseCase.js";
+import { UpdateStoreOrderUseCase } from "../application/storeOrders/updateStoreOrderUseCase.js";
 import { createStoreOrdersRouter } from "../presentation/http/storeOrdersRouter.js";
 import type { AuthMiddlewareFactory } from "../presentation/http/authMiddlewareFactory.js";
 
@@ -28,5 +29,6 @@ export function wireStoreOrdersRouter(auth: AuthMiddlewareFactory): Router {
     ),
     paginateStoreOrders: new PaginateStoreOrdersUseCase(orderRepository),
     getStoreOrderDetail: new GetStoreOrderDetailUseCase(orderRepository),
+    updateStoreOrder: new UpdateStoreOrderUseCase(orderRepository),
   });
 }

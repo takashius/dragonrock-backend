@@ -101,6 +101,31 @@ const storeOrderById = {
   },
 };
 
+const updateStoreOrder = {
+  patch: {
+    tags: ["StoreOrders"],
+    summary: "Actualizar estado de pedido (admin)",
+    description:
+      "Cambia el `status` del pedido. Valores: `pendiente`, `confirmado`, `enviado`, `cancelado`.",
+    parameters: [
+      authHeader,
+      {
+        in: "body",
+        name: "body",
+        required: true,
+        schema: { $ref: "#/definitions/UpdateStoreOrderBody" },
+      },
+    ],
+    responses: {
+      200: { description: "Pedido actualizado" },
+      401: { description: "No autorizado" },
+      404: { description: "Pedido no encontrado" },
+      400: validation400,
+      500: { description: "Error inesperado" },
+    },
+  },
+};
+
 const definitions = {
   CreatePublicStoreOrderBody: {
     type: "object",
@@ -134,11 +159,26 @@ const definitions = {
       notes: { type: "string" },
     },
   },
+  UpdateStoreOrderBody: {
+    type: "object",
+    required: ["id", "status"],
+    properties: {
+      id: {
+        type: "string",
+        pattern: "^[a-fA-F0-9]{24}$",
+      },
+      status: {
+        type: "string",
+        enum: ["pendiente", "confirmado", "enviado", "cancelado"],
+      },
+    },
+  },
 };
 
 export default {
   createPublicStoreOrder,
   paginateStoreOrders,
   storeOrderById,
+  updateStoreOrder,
   definitions,
 };

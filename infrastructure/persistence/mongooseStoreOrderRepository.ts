@@ -1,6 +1,7 @@
 import StoreOrder from "./mongoose/storeOrderModel.js";
 import type { StoreOrderRepository } from "../../application/ports/storeOrderRepository.js";
 import type { StoreOrderOutcome } from "../../application/types/storeOrderOutcome.js";
+import type { StoreOrderStatus } from "../../application/types/storeOrderOutcome.js";
 
 function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -185,6 +186,31 @@ export class MongooseStoreOrderRepository implements StoreOrderRepository {
         return { status: 400, message: "Invalid order id" };
       }
       console.log("[ERROR] -> getStoreOrderDetail", e);
+      return { status: 400, message: "Results error", detail: e };
+    }
+  }
+
+  async update(
+    data: { id: string; status: StoreOrderStatus },
+    companyId: string
+  ): Promise<StoreOrderOutcome> {
+    try {
+      const found = await StoreOrder.findOne({
+        _id: data.id,
+        active: true,
+        company: companyId,
+      });
+      if (!found) {
+        return { status: 404, message: "Order not found" };
+      }
+      found.status = data.status;
+      const result = await found.save();
+      return { status: 200, message: result };
+    } catch (e: unknown) {
+      if (e instanceof Error && e.name === "CastError") {
+        return { status: 400, message: "Invalid order id" };
+      }
+      console.log("[ERROR] -> updateStoreOrder", e);
       return { status: 400, message: "Results error", detail: e };
     }
   }

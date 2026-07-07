@@ -8,6 +8,7 @@ import type { StoreOrderOutcome } from "../../../application/types/storeOrderOut
 import { CreatePublicStoreOrderUseCase } from "../../../application/storeOrders/createPublicStoreOrderUseCase.js";
 import { PaginateStoreOrdersUseCase } from "../../../application/storeOrders/paginateStoreOrdersUseCase.js";
 import { GetStoreOrderDetailUseCase } from "../../../application/storeOrders/getStoreOrderDetailUseCase.js";
+import { UpdateStoreOrderUseCase } from "../../../application/storeOrders/updateStoreOrderUseCase.js";
 
 const ok: StoreOrderOutcome = { status: 200, message: [] };
 
@@ -18,6 +19,7 @@ function createOrderRepo(
     create: async () => ok,
     paginate: async () => ok,
     getDetail: async () => ok,
+    update: async () => ok,
     softDelete: async () => ok,
     ...overrides,
   } as StoreOrderRepository;
@@ -196,4 +198,25 @@ test("GetStoreOrderDetailUseCase delega con id y empresa", async () => {
   await new GetStoreOrderDetailUseCase(repo).execute("oid", "cid");
   assert.equal(id, "oid");
   assert.equal(company, "cid");
+});
+
+test("UpdateStoreOrderUseCase delega con id, status y empresa", async () => {
+  let seenId = "";
+  let seenStatus = "";
+  let seenCompany = "";
+  const repo = createOrderRepo({
+    async update(data, companyId) {
+      seenId = data.id;
+      seenStatus = data.status;
+      seenCompany = companyId;
+      return ok;
+    },
+  });
+  await new UpdateStoreOrderUseCase(repo).execute(
+    { id: "507f1f77bcf86cd799439011", status: "enviado" },
+    "c1"
+  );
+  assert.equal(seenId, "507f1f77bcf86cd799439011");
+  assert.equal(seenStatus, "enviado");
+  assert.equal(seenCompany, "c1");
 });

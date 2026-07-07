@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   createPublicStoreOrderBodySchema,
   paginateStoreOrdersQuerySchema,
+  updateStoreOrderBodySchema,
 } from "../../../presentation/http/schemas/routeSchemasStoreOrders.js";
 
 test("createPublicStoreOrderBodySchema: payload válido", () => {
@@ -40,4 +41,20 @@ test("paginateStoreOrdersQuerySchema: acepta filtros opcionales", () => {
     pageSize: "20",
   });
   assert.equal(parsed.success, true);
+});
+
+test("updateStoreOrderBodySchema: id y status válidos", () => {
+  const parsed = updateStoreOrderBodySchema.safeParse({
+    id: "507f1f77bcf86cd799439011",
+    status: "confirmado",
+  });
+  assert.equal(parsed.success, true);
+});
+
+test("updateStoreOrderBodySchema: status inválido falla", () => {
+  const parsed = updateStoreOrderBodySchema.safeParse({
+    id: "507f1f77bcf86cd799439011",
+    status: "entregado",
+  });
+  assert.equal(parsed.success, false);
 });

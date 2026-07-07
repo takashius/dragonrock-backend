@@ -2,6 +2,7 @@ import type {
   StoreOrderCustomerInput,
   StoreOrderLineItemSnapshot,
   StoreOrderOutcome,
+  StoreOrderStatus,
 } from "../types/storeOrderOutcome.js";
 
 /**
@@ -25,5 +26,9 @@ export interface StoreOrderRepository {
     companyId: string;
   }): Promise<StoreOrderOutcome>;
   getDetail(id: string, companyId: string): Promise<StoreOrderOutcome>;
+  update(
+    data: { id: string; status: StoreOrderStatus },
+    companyId: string
+  ): Promise<StoreOrderOutcome>;
   softDelete(id: string, companyId: string): Promise<StoreOrderOutcome>;
 }

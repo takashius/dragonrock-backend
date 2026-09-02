@@ -6,9 +6,16 @@ export class DeleteNewsCommentUseCase {
 
   async execute(
     commentId: string,
-    companyId: string
+    companyId: string,
+    actorRole?: string
   ): Promise<NewsCommentOutcome> {
     try {
+      if (actorRole !== "Administrador") {
+        return {
+          status: 403,
+          message: { error: "Only administrators can delete comments" },
+        };
+      }
       return await this.comments.softDelete(commentId, companyId);
     } catch (e: unknown) {
       console.log("[ERROR] -> deleteNewsComment", e);

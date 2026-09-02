@@ -9,4 +9,5 @@ export interface AuthUserPayload {
   areacode?: string;
   phone?: string;
   company: Types.ObjectId;
+  role?: "Administrador" | "Editor" | "Autor";
 }

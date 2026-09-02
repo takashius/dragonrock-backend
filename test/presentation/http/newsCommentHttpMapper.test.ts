@@ -26,12 +26,14 @@ test("sendNewsCommentOutcome: 404", () => {
   assert.equal(res.mockBody, "Comment not found");
 });
 
-test("sendNewsCommentOutcome: error sin detail", () => {
+test("sendNewsCommentOutcome: 403", () => {
   const res = createMockResponse();
   sendNewsCommentOutcome(res, createMockRequest(), {
-    status: 400,
-    message: "Captcha is required",
+    status: 403,
+    message: { error: "Only administrators can delete comments" },
   });
-  assert.equal(res.mockStatusCode, 400);
-  assert.equal(res.mockBody, "Captcha is required");
+  assert.equal(res.mockStatusCode, 403);
+  assert.deepEqual(res.mockBody, {
+    error: "Only administrators can delete comments",
+  });
 });

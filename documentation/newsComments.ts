@@ -73,7 +73,7 @@ const deleteNewsComment = {
     tags: ["News"],
     summary: "Eliminar comentario (soft delete)",
     description:
-      "Requiere autenticación. Solo comentarios de noticias de la empresa del usuario.",
+      "Requiere JWT (`Authorization: Bearer`). Solo el rol `Administrador` puede eliminar, y únicamente comentarios de noticias de su empresa.",
     parameters: [authHeader, mongoIdPathParam],
     responses: {
       200: {
@@ -81,7 +81,8 @@ const deleteNewsComment = {
         schema: { type: "string" },
       },
       400: validation400,
-      401: { description: "No autorizado" },
+      401: { description: "No autorizado (sesión inválida o ausente)" },
+      403: { description: "El usuario autenticado no es Administrador" },
       404: { description: "Comentario no encontrado" },
       500: { description: "Error inesperado" },
     },

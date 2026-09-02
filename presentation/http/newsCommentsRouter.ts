@@ -72,7 +72,8 @@ export function createNewsCommentsRouter(
       try {
         const outcome = await deps.deleteNewsComment.execute(
           req.params.id,
-          String(req.user!.company)
+          String(req.user!.company),
+          req.user!.role
         );
         sendNewsCommentOutcome(res, req, outcome);
       } catch (e: unknown) {

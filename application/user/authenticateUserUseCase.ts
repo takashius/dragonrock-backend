@@ -22,6 +22,7 @@ type UserDoc = {
   lastname?: string;
   email: string;
   phone?: string;
+  role?: "Administrador" | "Editor" | "Autor";
   companys: { selected: boolean; company: Types.ObjectId }[];
 };
 
@@ -91,6 +92,7 @@ export class AuthenticateUserUseCase {
       email: raw.email,
       phone: raw.phone,
       company: selectedCompanyId,
+      role: raw.role,
     };
 
     return { ok: true, user, token: trimmed };

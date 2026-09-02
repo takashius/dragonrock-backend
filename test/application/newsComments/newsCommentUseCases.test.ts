@@ -207,7 +207,28 @@ test("CreatePublicNewsCommentUseCase: no crea si la noticia no está publicada",
   assert.equal(created, false);
 });
 
-test("DeleteNewsCommentUseCase: delega en el repositorio", async () => {
+test("DeleteNewsCommentUseCase: rechaza si el actor no es Administrador", async () => {
+  let deleted = false;
+  const uc = new DeleteNewsCommentUseCase(
+    createCommentsRepo({
+      async softDelete() {
+        deleted = true;
+        return { status: 200, message: "Comment deleted successfully" };
+      },
+    })
+  );
+  const out = await uc.execute("cid", "coid", "Editor");
+  assert.equal(out.status, 403);
+  assert.equal(deleted, false);
+});
+
+test("DeleteNewsCommentUseCase: rechaza sin rol", async () => {
+  const uc = new DeleteNewsCommentUseCase(createCommentsRepo());
+  const out = await uc.execute("cid", "coid");
+  assert.equal(out.status, 403);
+});
+
+test("DeleteNewsCommentUseCase: delega en el repositorio si es Administrador", async () => {
   let commentId = "";
   let companyId = "";
   const uc = new DeleteNewsCommentUseCase(
@@ -219,7 +240,7 @@ test("DeleteNewsCommentUseCase: delega en el repositorio", async () => {
       },
     })
   );
-  const out = await uc.execute("cid", "coid");
+  const out = await uc.execute("cid", "coid", "Administrador");
   assert.equal(commentId, "cid");
   assert.equal(companyId, "coid");
   assert.equal(out.status, 200);

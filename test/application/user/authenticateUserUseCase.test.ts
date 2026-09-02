@@ -5,7 +5,7 @@ import { AuthenticateUserUseCase } from "../../../application/user/authenticateU
 import type { AccessTokenVerifier } from "../../../application/ports/accessTokenVerifier.js";
 import type { UserRepository } from "../../../application/ports/userRepository.js";
 
-function makeUserDoc(overrides: Partial<{ selected: boolean }> = {}) {
+function makeUserDoc(overrides: Partial<{ selected: boolean; role: "Administrador" | "Editor" | "Autor" }> = {}) {
   const companyId = new Types.ObjectId();
   const userId = new Types.ObjectId();
   return {
@@ -14,6 +14,7 @@ function makeUserDoc(overrides: Partial<{ selected: boolean }> = {}) {
     lastname: "Lovelace",
     email: "ada@example.com",
     phone: "000",
+    role: overrides.role ?? "Administrador",
     companys: [
       {
         selected: overrides.selected !== false,
@@ -103,6 +104,7 @@ test("AuthenticateUserUseCase: éxito", async () => {
     assert.equal(r.token, "bearer-token-value");
     assert.equal(String(r.user._id), String(doc._id));
     assert.equal(r.user.email, "ada@example.com");
+    assert.equal(r.user.role, "Administrador");
     assert.equal(String(r.user.company), String(doc.companys[0].company));
   }
 });

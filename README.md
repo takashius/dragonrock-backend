@@ -57,6 +57,8 @@ Cargadas con `dotenv` fuera de producción (`config.ts`). Las más importantes:
 | `MAILJET_REQUIRED` | Si es `true`, exige claves Mailjet y `MAIL_FROM_EMAIL` al arrancar (además de la regla en producción) |
 | `MAIL_FROM_EMAIL` / `MAIL_FROM_NAME` | Remitente Mailjet (email verificado + nombre mostrado) |
 | `RATE_LIMIT_*`     | Ventanas y máximos para `express-rate-limit` en login y rutas públicas sensibles (registro, recuperación) |
+| `RECAPTCHA_SECRET_KEY` | Secreto de Google reCAPTCHA para comentarios públicos. **Obligatorio en producción** |
+| `RECAPTCHA_MIN_SCORE` | Umbral 0–1 si el token es v3 (por defecto `0.5`). v2 no envía score |
 
 No commitees secretos: usa `.env` local (listado en `.gitignore`).
 
@@ -68,7 +70,8 @@ Antes de desplegar con `NODE_ENV=production`:
 2. Configura **`MJ_APIKEY_PUBLIC`**, **`MJ_APIKEY_PRIVATE`** y **`MAIL_FROM_EMAIL`** (y opcionalmente `MAIL_FROM_NAME`). El arranque valida esto cuando Mailjet es obligatorio (producción o `MAILJET_REQUIRED=true`).
 3. Tras un reverse proxy que inyecta `X-Forwarded-*`, ajusta **`TRUST_PROXY`** (habitualmente `1`) para que límites por IP y URLs correctas funcionen.
 4. **`SWAGGER_ENABLED`**: deja la documentación interactiva desactivada en producción salvo que la necesites explícitamente (`true`).
-5. La API usa **Helmet**, **CORS explícito**, **rate limiting** en `POST /user/login`, `POST /user/register`, solicitud de recuperación y confirmación de código.
+5. La API usa **Helmet**, **CORS explícito**, **rate limiting** en `POST /user/login`, `POST /user/register`, solicitud de recuperación, confirmación de código y `POST /news/public/:id/comments`.
+6. Define **`RECAPTCHA_SECRET_KEY`** (y en el front `VITE_RECAPTCHA_SITE_KEY`) para comentarios de noticias. El arranque falla en producción si falta el secreto.
 
 **Recuperación de contraseña:** se recomienda **`POST /user/recovery/request`** con cuerpo `{ "email": "..." }`. La ruta histórica **`GET /user/recovery/:email`** expone el correo en la URL y en logs intermedios, lo que puede facilitar **enumeración de cuentas**; se mantiene por compatibilidad pero está deprecada en la documentación OpenAPI.
 

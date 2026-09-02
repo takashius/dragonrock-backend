@@ -33,6 +33,15 @@ function envInt(name: string, fallback: number): number {
   return Number.isFinite(n) && n > 0 ? n : fallback;
 }
 
+function envScore(name: string, fallback: number): number {
+  const v = process.env[name];
+  if (v === undefined || v === "") {
+    return fallback;
+  }
+  const n = Number.parseFloat(v);
+  return Number.isFinite(n) && n >= 0 && n <= 1 ? n : fallback;
+}
+
 const nodeEnv = process.env.NODE_ENV ?? "development";
 const isProduction = nodeEnv === "production";
 
@@ -78,6 +87,9 @@ export interface AppConfig {
   rateLimitLoginMax: number;
   rateLimitSensitiveWindowMs: number;
   rateLimitSensitiveMax: number;
+  recaptchaSecretKey: string | undefined;
+  recaptchaMinScore: number;
+  recaptchaEnabled: boolean;
 }
 
 const config: AppConfig = {
@@ -132,6 +144,9 @@ const config: AppConfig = {
     15 * 60 * 1000
   ),
   rateLimitSensitiveMax: envInt("RATE_LIMIT_SENSITIVE_MAX", 10),
+  recaptchaSecretKey: process.env.RECAPTCHA_SECRET_KEY?.trim() || undefined,
+  recaptchaMinScore: envScore("RECAPTCHA_MIN_SCORE", 0.5),
+  recaptchaEnabled: Boolean(process.env.RECAPTCHA_SECRET_KEY?.trim()),
 };
 
 export default config;
@@ -192,6 +207,12 @@ export function assertSecurityConfigAtStartup(): void {
   if (cloudinaryValues > 0 && !config.cloudinaryEnabled) {
     throw new Error(
       "[fatal] Configuración Cloudinary incompleta: define CLOUD_NAME, CLOUDINARY_KEY y CLOUDINARY_SECRET."
+    );
+  }
+
+  if (config.isProduction && !config.recaptchaSecretKey) {
+    throw new Error(
+      "[fatal] En NODE_ENV=production debes definir RECAPTCHA_SECRET_KEY para comentarios públicos (reCAPTCHA)."
     );
   }
 }

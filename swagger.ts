@@ -10,6 +10,7 @@ import storeOrders from "./documentation/storeOrders.js";
 import dashboard from "./documentation/dashboard.js";
 import publicHome from "./documentation/publicHome.js";
 import contact from "./documentation/contact.js";
+import newsComments from "./documentation/newsComments.js";
 import media from "./documentation/media.js";
 
 const definition = {
@@ -112,6 +113,8 @@ const definition = {
     "/news/paginate": news.paginateNews,
     "/news/public": news.publicListNews,
     "/news/public/{id}": news.publicNewsById,
+    "/news/public/{id}/comments": newsComments.publicNewsComments,
+    "/news/comments/{id}": newsComments.deleteNewsComment,
     "/news/{id}": news.newsById,
     "/entrepreneurship": {
       post: entrepreneurship.createEntrepreneurship.post,
@@ -177,6 +180,7 @@ const definition = {
   definitions: {
     ...user.definitions,
     ...news.definitions,
+    ...newsComments.definitions,
     ...entrepreneurship.definitions,
     ...liveEvents.definitions,
     ...multimedia.definitions,

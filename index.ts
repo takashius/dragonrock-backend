@@ -3,6 +3,7 @@ import bodyParser from "body-parser";
 import path from "path";
 import helmet from "helmet";
 import db from "./db.js";
+import { assignMoshCategoryByNameOnce } from "./infrastructure/persistence/assignMoshCategoryByName.js";
 import config, {
   assertSecurityConfigAtStartup,
   buildCorsOptions,
@@ -38,6 +39,13 @@ async function start(): Promise<void> {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("[db] Error de conexión:", msg);
     process.exit(1);
+  }
+
+  try {
+    await assignMoshCategoryByNameOnce();
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[live-events] no se pudo asignar la categoría mosh:", msg);
   }
 
   const server = express();

@@ -58,7 +58,7 @@ const paginateLiveEvents = {
         in: "query",
         required: false,
         type: "string",
-        enum: ["concierto", "festival", "cultural", "otro"],
+        enum: ["concierto", "festival", "cultural", "otro", "mosh"],
       },
       {
         name: "status",
@@ -197,7 +197,7 @@ const definitions = {
       name: { type: "string" },
       type: {
         type: "string",
-        enum: ["concierto", "festival", "cultural", "otro"],
+        enum: ["concierto", "festival", "cultural", "otro", "mosh"],
       },
       status: {
         type: "string",
@@ -249,7 +249,7 @@ const definitions = {
       name: { type: "string" },
       type: {
         type: "string",
-        enum: ["concierto", "festival", "cultural", "otro"],
+        enum: ["concierto", "festival", "cultural", "otro", "mosh"],
       },
       status: {
         type: "string",

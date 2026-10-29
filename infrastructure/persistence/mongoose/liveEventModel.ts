@@ -10,7 +10,7 @@ const liveEventSchema = new Schema({
   },
   type: {
     type: String,
-    enum: ["concierto", "festival", "cultural", "otro"],
+    enum: ["concierto", "festival", "cultural", "otro", "mosh"],
     required: [true, "Event type is required."],
   },
   status: {

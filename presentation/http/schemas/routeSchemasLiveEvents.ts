@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { objectIdString } from "./routeSchemas.js";
 
-const liveEventTypeEnum = z.enum(["concierto", "festival", "cultural", "otro"]);
+const liveEventTypeEnum = z.enum(["concierto", "festival", "cultural", "otro", "mosh"]);
 const liveEventStatusEnum = z.enum([
   "upcoming",
   "ongoing",

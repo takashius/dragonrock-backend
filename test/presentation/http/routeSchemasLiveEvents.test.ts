@@ -21,6 +21,18 @@ test("createLiveEventBodySchema: payload válido con coordenadas", () => {
   assert.equal(parsed.success, true);
 });
 
+test("createLiveEventBodySchema: acepta la categoría mosh", () => {
+  const parsed = createLiveEventBodySchema.safeParse({
+    name: "Mosh del Rock Metal IV",
+    type: "mosh",
+    status: "upcoming",
+    date: "2026-11-01",
+    time: "18:00",
+    place: "Caracas",
+  });
+  assert.equal(parsed.success, true);
+});
+
 test("createLiveEventBodySchema: falta name falla", () => {
   const parsed = createLiveEventBodySchema.safeParse({
     type: "concierto",
